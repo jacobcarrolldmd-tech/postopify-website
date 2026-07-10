@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postopify — Post-op instructions your patients can't lose</title>
+<meta name="description" content="Postopify turns your practice's discharge instructions into a QR code. Patients scan it once and see their procedure and medication schedule on any phone — no app required.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16233A;
+    --paper:#EFF1EA;
+    --paper-raised:#FFFFFF;
+    --teal:#2B5F52;
+    --teal-deep:#1D4438;
+    --iodine:#C1592E;
+    --line:#C7CBBF;
+    --mint-pale:#DFE7E0;
+    --ink-soft:#4B5B63;
+
+    --display:'Space Grotesk', sans-serif;
+    --body:'Source Serif 4', serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:var(--display); font-weight:600; letter-spacing:-0.01em; margin:0;}
+  .mono{font-family:var(--mono);}
+  a{color:inherit;}
+  img,svg{display:block;}
+  :focus-visible{outline:2px solid var(--iodine); outline-offset:3px;}
+
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(239,241,234,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 0;
+  }
+  .logo{display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:19px; text-decoration:none; color:var(--ink);}
+  .logo .icon{width:26px; height:26px; flex:none;}
+  nav{display:flex; gap:28px; align-items:center;}
+  nav a{font-family:var(--mono); font-size:13px; text-decoration:none; color:var(--ink-soft); letter-spacing:0.02em;}
+  nav a:hover{color:var(--teal);}
+  nav a.cta{
+    color:var(--paper-raised); background:var(--teal); padding:9px 16px; border-radius:3px;
+  }
+  nav a.cta:hover{background:var(--teal-deep);}
+
+  .nav-toggle{display:none;}
+
+  /* ---------- eyebrow / dividers ---------- */
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--iodine); display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:"☐"; font-size:14px;}
+  .chart-rule{
+    border:none; border-top:1px dashed var(--line); margin:0;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:76px 0 64px;}
+  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center;}
+  .hero h1{font-size:clamp(34px, 4.6vw, 54px); line-height:1.05; margin-bottom:22px;}
+  .hero p.lede{font-size:19px; color:var(--ink-soft); max-width:46ch; margin-bottom:32px;}
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--mono); font-size:14px; letter-spacing:0.01em; text-decoration:none;
+    padding:13px 22px; border-radius:3px; display:inline-block; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--teal); color:#fff;}
+  .btn-primary:hover{background:var(--teal-deep);}
+  .btn-ghost{border-color:var(--ink); color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--teal); color:var(--teal);}
+
+  /* schedule card (signature element) */
+  .schedule-card{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:6px;
+    padding:26px 26px 22px; box-shadow:0 18px 40px -24px rgba(22,35,58,0.35);
+  }
+  .schedule-card .sc-head{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:18px;
+    border-bottom:1px solid var(--line); padding-bottom:14px;
+  }
+  .schedule-card .sc-head .clinic{font-family:var(--display); font-weight:600; font-size:15px;}
+  .schedule-card .sc-head .proc{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);}
+  .sc-row{
+    display:grid; grid-template-columns:22px 70px 1fr; gap:12px; align-items:center;
+    padding:9px 0; border-bottom:1px solid #E4E7DF;
+  }
+  .sc-row:last-child{border-bottom:none;}
+  .sc-box{
+    width:18px; height:18px; border:1.6px solid var(--ink); border-radius:2px; position:relative;
+    opacity:0.35;
+  }
+  .sc-box.checked{opacity:1; border-color:var(--teal); background:var(--teal);}
+  .sc-box.checked::after{
+    content:""; position:absolute; left:3px; top:0px; width:5px; height:9px;
+    border-right:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(40deg);
+  }
+  .sc-time{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft);}
+  .sc-med{font-size:15px;}
+  .sc-med .dose{color:var(--ink-soft); font-size:13px;}
+
+  /* ---------- problem section ---------- */
+  .band{padding:64px 0;}
+  .problem-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:56px; align-items:start;}
+  .problem-grid h2{font-size:30px; line-height:1.15; margin-bottom:6px;}
+  .problem-grid p{color:var(--ink-soft); font-size:17px; max-width:56ch;}
+
+  /* ---------- how it works ---------- */
+  .steps{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0; margin-top:36px; position:relative;
+  }
+  .step{padding:0 22px 0 0; position:relative;}
+  .step:not(:last-child)::after{
+    content:""; position:absolute; top:14px; right:0; width:22px; border-top:1px dashed var(--line);
+  }
+  .step .num{font-family:var(--mono); color:var(--iodine); font-size:13px; margin-bottom:14px; display:block;}
+  .step h3{font-size:17px; margin-bottom:8px;}
+  .step p{color:var(--ink-soft); font-size:15px; margin:0;}
+
+  /* ---------- features ---------- */
+  .features{background:var(--mint-pale);}
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line);
+    border:1px solid var(--line); margin-top:36px; border-radius:6px; overflow:hidden;
+  }
+  .feature{background:var(--paper-raised); padding:26px 24px;}
+  .feature .fmark{color:var(--iodine); font-family:var(--mono); font-size:15px; margin-bottom:10px; display:block;}
+  .feature h3{font-size:16px; margin-bottom:8px;}
+  .feature p{font-size:14.5px; color:var(--ink-soft); margin:0;}
+
+  /* ---------- pricing ---------- */
+  .pricing-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:36px;
+  }
+  .price-card{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:6px;
+    padding:26px 24px; display:flex; flex-direction:column;
+  }
+  .price-card.highlight{border-color:var(--teal); box-shadow:0 18px 40px -28px rgba(43,95,82,0.45);}
+  .price-card .pc-label{font-family:var(--mono); font-size:12px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px;}
+  .price-card .pc-amount{font-family:var(--display); font-weight:700; font-size:36px; line-height:1; margin-bottom:4px;}
+  .price-card .pc-amount span{font-family:var(--mono); font-weight:400; font-size:14px; color:var(--ink-soft);}
+  .price-card .pc-note{font-family:var(--mono); font-size:12.5px; color:var(--teal-deep); margin-bottom:14px; min-height:16px;}
+  .price-card p.pc-desc{color:var(--ink-soft); font-size:14.5px; margin:0; flex:1;}
+  .pricing-setup{
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+    margin-top:20px; padding:18px 22px; border:1px dashed var(--line); border-radius:6px;
+  }
+  .pricing-setup .ps-text{font-size:15px; color:var(--ink-soft);}
+  .pricing-setup .ps-text b{color:var(--ink); font-family:var(--mono); font-weight:500;}
+
+  @media (max-width:860px){
+    .pricing-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- practices ---------- */
+  .practice-list{margin-top:32px; border-top:1px solid var(--line);}
+  .practice-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:18px; align-items:center;
+    padding:20px 0; border-bottom:1px solid var(--line);
+  }
+  .practice-row .pname{font-family:var(--display); font-weight:600; font-size:18px;}
+  .practice-row .pfull{color:var(--ink-soft); font-size:14px; margin-top:2px;}
+  .status{font-family:var(--mono); font-size:12px; letter-spacing:0.04em; text-transform:uppercase; padding:5px 10px; border-radius:20px;}
+  .status.live{background:#DCEFE7; color:var(--teal-deep);}
+  .status.onboarding{background:#F3E3D8; color:var(--iodine);}
+  .practice-row .visit{font-family:var(--mono); font-size:13px; text-decoration:none; color:var(--teal); white-space:nowrap;}
+  .practice-row .visit:hover{color:var(--teal-deep);}
+
+  /* ---------- cta band ---------- */
+  .cta-band{background:var(--ink); color:#fff; padding:70px 0; text-align:center;}
+  .cta-band h2{font-size:32px; margin-bottom:14px; color:#fff;}
+  .cta-band p{color:#C7CFD8; max-width:52ch; margin:0 auto 30px;}
+  .cta-band .btn-primary{background:var(--iodine);}
+  .cta-band .btn-primary:hover{background:#a3491f;}
+
+  /* ---------- footer ---------- */
+  footer{padding:36px 0; border-top:1px solid var(--line);}
+  .footer-tagline{
+    font-family:var(--display); font-weight:700; letter-spacing:-0.02em;
+    font-size:clamp(28px, 5vw, 50px); line-height:1.05; color:var(--ink);
+    margin-bottom:20px;
+  }
+  .footer-row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  footer .mono{font-size:12.5px; color:var(--ink-soft);}
+
+  @media (max-width: 860px){
+    .hero-grid{grid-template-columns:1fr;}
+    .problem-grid{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr 1fr; row-gap:28px;}
+    .step:nth-child(2)::after{display:none;}
+    .feature-grid{grid-template-columns:1fr 1fr;}
+    nav{display:none;}
+    .practice-row{grid-template-columns:1fr; text-align:left;}
+  }
+  @media (max-width: 520px){
+    .steps{grid-template-columns:1fr;}
+    .step::after{display:none !important;}
+    .feature-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- demo phones ---------- */
+  .demo-phones{
+    display:flex; align-items:center; justify-content:center; gap:34px;
+    margin-top:40px; flex-wrap:wrap;
+  }
+  .phone-block{text-align:center;}
+  .phone-block .pcap{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); margin-top:16px;}
+  .phone-block .pcap b{color:var(--ink); font-weight:500;}
+  .phone{
+    width:230px; height:420px; border:2px solid var(--ink); border-radius:26px;
+    background:var(--paper-raised); padding:16px 12px 12px; box-shadow:0 18px 40px -26px rgba(22,35,58,0.4);
+    display:flex; flex-direction:column;
+  }
+  .phone .notch{width:56px; height:5px; border-radius:3px; background:var(--line); margin:0 auto 14px;}
+  .phone .pscreen{flex:1; display:flex; flex-direction:column; gap:8px; overflow:hidden; border-radius:8px;}
+  .phone-shot{width:100%; height:100%; object-fit:cover; object-position:top center; border-radius:8px; display:block;}
+  .phone .p-logo{width:26px; height:26px; border-radius:6px; background:var(--mint-pale); border:1px solid var(--line); margin-bottom:4px;}
+  .phone .p-clinic{font-family:var(--display); font-weight:600; font-size:12.5px; margin-bottom:10px;}
+  .proc-btn{
+    font-family:var(--body); font-size:13px; text-align:left; padding:10px 10px;
+    border:1px solid var(--line); border-radius:5px; color:var(--ink);
+  }
+  .proc-btn.sel{border-color:var(--teal); background:var(--mint-pale); font-weight:600;}
+  .demo-arrow{font-family:var(--mono); font-size:22px; color:var(--iodine); align-self:center;}
+  .mini-line{height:7px; border-radius:3px; background:var(--line); width:100%;}
+  .mini-line.short{width:70%;}
+  .mini-sched-row{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #E4E7DF;}
+  .mini-box{width:12px; height:12px; border:1.4px solid var(--teal); border-radius:2px; background:var(--teal); position:relative; flex:none;}
+  .mini-box::after{content:""; position:absolute; left:2px; top:1px; width:3px; height:6px; border-right:1.4px solid #fff; border-bottom:1.4px solid #fff; transform:rotate(40deg);}
+  .mini-box.off{background:transparent; opacity:0.35;}
+  .mini-box.off::after{display:none;}
+  .mini-time{font-family:var(--mono); font-size:10px; color:var(--ink-soft); width:44px; flex:none;}
+  .mini-med{font-size:11.5px;}
+
+  /* ---------- printable docs ---------- */
+  .doc-cards{
+    display:flex; gap:32px; flex-wrap:wrap; justify-content:center; margin-top:36px;
+  }
+  .doc-card{width:270px;}
+  .doc-card .doc-frame{
+    border:1px solid var(--line); border-radius:6px; overflow:hidden;
+    box-shadow:0 18px 40px -26px rgba(22,35,58,0.4); background:var(--paper-raised);
+  }
+  .doc-card img{width:100%; display:block;}
+  .doc-cap{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); margin-top:12px; text-align:center;}
+  .doc-cap b{color:var(--ink); font-weight:500;}
+
+  @media (max-width:520px){
+    .doc-cards{gap:20px;}
+    .doc-card{width:100%; max-width:320px;}
+    .demo-phones{gap:20px;}
+    .phone{width:190px; height:360px;}
+    .demo-arrow{transform:rotate(90deg);}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a href="#top" class="logo">
+      <svg class="icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="22" height="22" rx="4" stroke="#16233A" stroke-width="1.8"/>
+        <path d="M8 13.5L11.2 16.7L18 9.5" stroke="#C1592E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      postopify
+    </a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#practices">Practices</a>
+      <a href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice" class="cta">Bring it to my practice</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Post-op instructions, delivered</div>
+        <h1>Post-op care that survives the ride home.</h1>
+        <p class="lede">Postopify turns your practice's discharge instructions into a QR code. Patients scan it once and see their procedure and medication schedule on any phone — nothing to download, nothing to lose.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice">Bring Postopify to your practice</a>
+          <a class="btn btn-ghost" href="#how">See how it works</a>
+        </div>
+      </div>
+      <div class="schedule-card" aria-hidden="true">
+        <div class="sc-head">
+          <span class="clinic">John Doe</span>
+          <span class="proc">Post-op day 1</span>
+        </div>
+        <div class="sc-row"><div class="sc-box checked" data-delay="0"></div><span class="sc-time">8:00 AM</span><span class="sc-med">Amoxicillin <span class="dose">500mg</span></span></div>
+        <div class="sc-row"><div class="sc-box checked" data-delay="1"></div><span class="sc-time">12:00 PM</span><span class="sc-med">Ibuprofen <span class="dose">600mg</span></span></div>
+        <div class="sc-row"><div class="sc-box" data-delay="2"></div><span class="sc-time">4:00 PM</span><span class="sc-med">Amoxicillin <span class="dose">500mg</span></span></div>
+        <div class="sc-row"><div class="sc-box" data-delay="3"></div><span class="sc-time">8:00 PM</span><span class="sc-med">Ibuprofen <span class="dose">600mg</span></span></div>
+        <div class="sc-row"><div class="sc-box" data-delay="4"></div><span class="sc-time">10:00 PM</span><span class="sc-med">Amoxicillin <span class="dose">500mg</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="chart-rule wrap">
+
+  <!-- PROBLEM -->
+  <section class="band">
+    <div class="wrap problem-grid">
+      <div>
+        <div class="eyebrow">Why paper fails</div>
+        <h2>A discharge sheet does its job for one ride home.</h2>
+      </div>
+      <p>After that, it's folded into a bag, left on a nightstand, or gone — right when a patient most needs to remember which medication comes at 2 PM. Postopify replaces the sheet with a link every phone already knows how to open, so the instructions are still there on day three, not just day one.</p>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="band" id="how">
+    <div class="wrap">
+      <div class="eyebrow">How it works</div>
+      <h2 style="font-size:30px;">Four steps, no code changes.</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="num">01</span>
+          <h3>Add your procedures</h3>
+          <p>Drop a Google Doc into your practice's folder for each procedure. The title becomes the name patients see.</p>
+        </div>
+        <div class="step">
+          <span class="num">02</span>
+          <h3>Hand out your QR code</h3>
+          <p>Each practice gets one code, branded with your clinic's name, logo, and colors.</p>
+        </div>
+        <div class="step">
+          <span class="num">03</span>
+          <h3>Patient scans, no app</h3>
+          <p>The code opens a page built for their procedure: instructions plus a medication schedule they can check off.</p>
+        </div>
+        <div class="step">
+          <span class="num">04</span>
+          <h3>Update anytime</h3>
+          <p>Edit the Google Doc and the change is live immediately. Nothing to redeploy, nothing to reprint.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section class="band">
+    <div class="wrap">
+      <div class="eyebrow">See it in action</div>
+      <h2 style="font-size:30px;">What a patient sees.</h2>
+      <p style="color:var(--ink-soft); max-width:56ch; margin-top:8px;">The actual patient view — real screens, live on a practice's phone.</p>
+
+      <div class="demo-phones">
+        <div class="phone-block">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="pscreen">
+              <video class="phone-shot" src="demo-loop.mp4" poster="demo-loop-poster.jpg" autoplay muted loop playsinline></video>
+            </div>
+          </div>
+          <div class="pcap"><b>01</b> — Set a dose reminder</div>
+        </div>
+
+        <span class="demo-arrow">→</span>
+
+        <div class="phone-block">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="pscreen">
+              <img src="screen-procedures.jpg" alt="Selecting a procedure from the list in the Postopify patient view" class="phone-shot">
+            </div>
+          </div>
+          <div class="pcap"><b>02</b> — Pick a procedure</div>
+        </div>
+
+        <span class="demo-arrow">→</span>
+
+        <div class="phone-block">
+          <div class="phone">
+            <div class="notch"></div>
+            <div class="pscreen">
+              <img src="screen-instructions.jpg" alt="Post-operative instructions for a selected procedure in the Postopify patient view" class="phone-shot">
+            </div>
+          </div>
+          <div class="pcap"><b>03</b> — Read the instructions for that procedure</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="band features">
+    <div class="wrap">
+      <div class="eyebrow">What's included</div>
+      <h2 style="font-size:30px;">Built for how a surgical practice actually runs.</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <span class="fmark">☐</span>
+          <h3>Branded per practice</h3>
+          <p>Logo, name, and color scheme are pulled automatically from your practice's own link.</p>
+        </div>
+        <div class="feature">
+          <span class="fmark">☐</span>
+          <h3>Zero-code content</h3>
+          <p>Add a Google Doc to your practice's folder and it appears as a selectable procedure. No developer required.</p>
+        </div>
+        <div class="feature">
+          <span class="fmark">☐</span>
+          <h3>Printable trackers</h3>
+          <p>A paper backup with real checkboxes, for patients or caregivers who'd rather use pen and paper.</p>
+        </div>
+        <div class="feature">
+          <span class="fmark">☐</span>
+          <h3>Your content stays yours</h3>
+          <p>Clinical instructions live in your own Google Drive — not on a server you don't control.</p>
+        </div>
+        <div class="feature">
+          <span class="fmark">☐</span>
+          <h3>No app, no login</h3>
+          <p>Nothing to install and no separate account holding patient data — everything opens right in the browser already on their phone.</p>
+        </div>
+        <div class="feature">
+          <span class="fmark">☐</span>
+          <h3>Built by a surgeon</h3>
+          <p>Created by an oral &amp; maxillofacial surgeon — flexible enough for any practice that prescribes post-operative medications, not just oral surgery.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRINTABLE DOCS -->
+  <section class="band">
+    <div class="wrap">
+      <div class="eyebrow">Printable backup</div>
+      <h2 style="font-size:30px;">Every practice also gets these, ready to print.</h2>
+      <p style="color:var(--ink-soft); max-width:56ch; margin-top:8px;">Not every patient wants to use a phone. Each practice gets a discharge handout with their own QR code, plus a paper tracker for anyone who'd rather use pen and paper.</p>
+      <div class="doc-cards">
+        <div class="doc-card">
+          <div class="doc-frame"><img src="generic-qr-handout.png" alt="Sample discharge handout with a QR code linking to the patient's medication schedule"></div>
+          <div class="doc-cap"><b>QR handout</b> — given at discharge, branded to your practice</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-frame"><img src="generic-paper-tracker.png" alt="Sample printable paper medication tracker with checkboxes for each dose"></div>
+          <div class="doc-cap"><b>Paper tracker</b> — a pen-and-paper backup with real checkboxes</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="band" id="pricing">
+    <div class="wrap">
+      <div class="eyebrow">Pricing</div>
+      <h2 style="font-size:30px;">Simple, flat pricing per practice.</h2>
+      <p style="color:var(--ink-soft); max-width:56ch; margin-top:8px;">No per-patient fees, no metering. One flat rate for your practice, however many patients scan the code.</p>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="pc-label">Monthly</div>
+          <div class="pc-amount">$35 <span>/ month</span></div>
+          <div class="pc-note">&nbsp;</div>
+          <p class="pc-desc">Billed monthly. Cancel anytime.</p>
+        </div>
+        <div class="price-card highlight">
+          <div class="pc-label">Annual</div>
+          <div class="pc-amount">$350 <span>/ year</span></div>
+          <div class="pc-note">Save about 2 months</div>
+          <p class="pc-desc">Billed once a year. Works out to roughly $29/month.</p>
+        </div>
+        <div class="price-card">
+          <div class="pc-label">Setup</div>
+          <div class="pc-amount">$50 <span>one-time</span></div>
+          <div class="pc-note">&nbsp;</div>
+          <p class="pc-desc">Branding, Drive folder setup, and subdomain provisioning for your practice.</p>
+        </div>
+      </div>
+
+      <div class="pricing-setup">
+        <div class="ps-text">Every new practice starts with a short call so we can set up your branding and folder correctly the first time. <b>No self-serve checkout — reach out and we'll walk you through it.</b></div>
+        <a class="btn btn-primary" href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20pricing%20—%20getting%20started">Get started</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRACTICES -->
+  <section class="band" id="practices">
+    <div class="wrap">
+      <div class="eyebrow">Currently live</div>
+      <h2 style="font-size:30px;">Practices using Postopify.</h2>
+      <div class="practice-list">
+        <div class="practice-row">
+          <div>
+            <div class="pname">VEOS</div>
+            <div class="pfull">Valley Endodontics &amp; Oral Surgery</div>
+          </div>
+          <span class="status live">Live</span>
+          <span class="visit mono" style="color:var(--ink-soft);">QR-code access only</span>
+        </div>
+        <div class="practice-row">
+          <div>
+            <div class="pname">OMSCO</div>
+            <div class="pfull">Oral &amp; Maxillofacial Surgery Center of Oregon</div>
+          </div>
+          <span class="status onboarding">Onboarding</span>
+          <span class="visit mono" style="color:var(--ink-soft);">QR-code access only</span>
+        </div>
+      </div>
+      <p style="font-size:14px; color:var(--ink-soft); margin-top:16px;">Each practice's page is reachable only through their own QR code — we don't publish live links here.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Have a practice you'd like on Postopify?</h2>
+      <p>Setup takes an afternoon: a Drive folder for your instructions, a subdomain, and your clinic's branding. Nothing for your patients to download.</p>
+      <a class="btn btn-primary" href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice">Request access</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-tagline">postopify — built for patient care</div>
+    <div class="footer-row">
+      <span class="mono">© 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Stagger the hero schedule card check marks on load (respects reduced motion)
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce) return;
+    var boxes = document.querySelectorAll('.sc-box');
+    boxes.forEach(function(box){
+      box.style.transition = 'opacity .3s ease, background .3s ease, border-color .3s ease';
+    });
+  })();
+</script>
+
+</body>
+</html>
