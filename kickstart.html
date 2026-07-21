@@ -31,11 +31,12 @@
 
   label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;}
   .hint{font-size:12px;color:var(--gray);margin:-4px 0 10px;line-height:1.4;}
-  input[type=text],input[type=date],input[type=time],input[type=url]{
+  input[type=text],input[type=date],input[type=time],input[type=url],textarea{
     width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
     font-size:15px;font-family:inherit;color:var(--navy);background:#fff;margin-bottom:14px;
   }
-  input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  textarea{resize:vertical;min-height:70px;}
+  input:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
 
   .field{margin-bottom:2px;}
 
@@ -74,11 +75,52 @@
 
   .privacy-note{font-size:12px;color:var(--gray);line-height:1.5;text-align:center;margin-top:18px;}
 
+  /* ── Printable patient handout ── */
+  /* Hidden on screen always; only shown (and only thing shown) when printing.
+     Kept in normal HTML flow rather than injected at print-time so it can be
+     inspected/edited the same way as the rest of the page. */
+  #printHandout{display:none;}
+
   @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     body{padding:0;background:#fff;}
-    .card:not(#printCard){display:none;}
-    .config-note,.privacy-note,h1,.sub,.eyebrow{display:none;}
-    #printCard{border:none;box-shadow:none;}
+    .wrap > *:not(#printHandout){display:none !important;}
+    #printHandout{display:block;max-width:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--navy);}
+
+    .ph-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--navy);padding-bottom:14px;margin-bottom:16px;}
+    .ph-practice-name{font-size:20px;font-weight:700;color:var(--navy);}
+    .ph-tagline{font-size:11px;color:var(--gray);margin-top:2px;}
+
+    .ph-intro-box{border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
+    .ph-intro-box strong{display:block;font-size:14px;margin-bottom:3px;}
+    .ph-intro-box div{font-size:11.5px;color:var(--gray);}
+
+    .ph-custom-note{background:var(--iodine-light);border:1.5px solid var(--iodine);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;line-height:1.5;}
+
+    .ph-main-grid{display:flex;gap:16px;margin-bottom:16px;}
+    .ph-steps{flex:1.2;}
+    .ph-step{display:flex;gap:8px;margin-bottom:10px;font-size:11.5px;}
+    .ph-step span{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+    .ph-step strong{display:block;font-size:12px;}
+    .ph-step div div{color:var(--gray);}
+
+    .ph-qr-box{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+    .ph-qr-box img{width:150px;height:150px;}
+    .ph-qr-box .ph-qr-label{font-size:12px;font-weight:700;margin-top:6px;}
+    .ph-qr-sub{font-size:10px;color:var(--gray);margin-top:2px;}
+
+    .ph-homescreen{border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
+    .ph-homescreen > strong{display:block;font-size:12px;margin-bottom:8px;}
+    .ph-homescreen-grid{display:flex;gap:20px;}
+    .ph-homescreen-grid > div{flex:1;}
+    .ph-homescreen-grid strong{display:block;font-size:11.5px;margin-bottom:4px;}
+    .ph-homescreen-grid ol{margin:0;padding-left:16px;font-size:11px;color:var(--gray);line-height:1.5;}
+    .ph-warn{font-size:10.5px;color:var(--iodine);margin-top:8px;}
+
+    .ph-privacy{background:var(--teal-light);border:1.5px solid var(--teal);border-radius:10px;padding:10px 14px;font-size:11px;margin-bottom:14px;}
+
+    .ph-footer{display:flex;justify-content:space-between;align-items:flex-end;border-top:1.5px solid var(--border);padding-top:10px;font-size:10.5px;color:var(--gray);}
+    .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
 </style>
 </head>
@@ -94,11 +136,19 @@
     <button type="button" onclick="editAppUrl()">change</button>
   </div>
   <div class="card" id="appUrlCard" style="display:none;">
-    <h2>App address (set once per device)</h2>
+    <h2>Practice setup (set once per device)</h2>
     <label for="appUrl">This practice's app URL</label>
     <input type="url" id="appUrl" placeholder="https://veos.postopify.com">
-    <div class="hint">e.g. https://veos.postopify.com or https://omsco.postopify.com — saved on this device so you won't need to enter it again.</div>
-    <button class="btn btn-primary" type="button" onclick="saveAppUrl()">Save address</button>
+    <div class="hint">e.g. https://veos.postopify.com or https://omsco.postopify.com</div>
+
+    <label for="practiceName">Practice name (for the printed handout)</label>
+    <input type="text" id="practiceName" placeholder="e.g. Valley Endodontics &amp; Oral Surgery">
+
+    <label for="customNote">Custom note for the printed handout (optional)</label>
+    <textarea id="customNote" placeholder="e.g. your own pain-management guidance, dosing notes, or anything else specific to your practice. Leave blank to omit this box entirely."></textarea>
+    <div class="hint">This is your own wording, printed exactly as typed &mdash; nothing here is written or suggested automatically.</div>
+
+    <button class="btn btn-primary" type="button" onclick="saveAppUrl()">Save</button>
   </div>
 
   <div class="card">
@@ -146,20 +196,89 @@
       </div>
     </div>
     <div class="hint">On by default — the app will show a one-tap "Connect Telegram" banner the moment it opens, instead of the family needing to find it themselves further down the page.</div>
+  </div>
 
   <div class="card result" id="resultCard">
     <h2>Ready to hand off</h2>
-    <div class="qr-box" id="printCard">
+    <div class="qr-box">
       <img id="qrImg" src="" alt="QR code linking to the patient's Postopify setup">
     </div>
     <div class="link-row">
       <input type="text" id="linkOutput" readonly>
       <button class="btn-copy" type="button" onclick="copyLink()">Copy</button>
     </div>
-    <button class="btn btn-secondary" type="button" onclick="window.print()">Print this page</button>
+    <button class="btn btn-secondary" type="button" onclick="printHandout()">Print patient handout</button>
   </div>
 
-  <p class="privacy-note">This link only carries the procedure name, surgery date, and (if given) the ketorolac time — no patient name or other identifying information.</p>
+  <p class="privacy-note">This link only carries the procedure name, surgery date, and (if given) the ketorolac time and appointment — no patient name or other identifying information.</p>
+
+  <!-- Printable handout: hidden on screen, only rendered by @media print -->
+  <div id="printHandout">
+    <div class="ph-header">
+      <div>
+        <div class="ph-practice-name" id="phPracticeName">Practice Name</div>
+        <div class="ph-tagline">Your Post-Operative Medication Schedule &mdash; no account or download needed &mdash; works on any phone</div>
+      </div>
+    </div>
+
+    <div class="ph-intro-box">
+      <strong>Post-Op Medication Schedule &mdash; Your Personal Tracking Tool</strong>
+      <div>Track your medications with tap-to-check doses and automatic time logs, right from your phone.</div>
+    </div>
+
+    <div class="ph-custom-note" id="phCustomNote" style="display:none;"></div>
+
+    <div class="ph-main-grid">
+      <div class="ph-steps">
+        <div class="ph-step"><span>1</span><div><strong>Scan the QR code</strong><div>Open your phone's camera, point it at the QR code, and tap the link. No download needed.</div></div></div>
+        <div class="ph-step"><span>2</span><div><strong>Your info is already filled in</strong><div>Your surgery date and procedure are pre-loaded &mdash; just double-check them.</div></div></div>
+        <div class="ph-step"><span>3</span><div><strong>Tap to check off</strong><div>Tap each dose when you take it &mdash; the time is logged automatically.</div></div></div>
+        <div class="ph-step"><span>4</span><div><strong>Switch days</strong><div>Tap the day tabs to move between Day of Surgery and the days after.</div></div></div>
+        <div class="ph-step"><span>5</span><div><strong>Auto-saves</strong><div>Close and come back anytime &mdash; nothing is lost. No account needed.</div></div></div>
+        <div class="ph-step"><span>6</span><div><strong>iPhone dose alarms</strong><div>For alarms to work on iPhone, add the app to your Home Screen first (see below).</div></div></div>
+      </div>
+      <div class="ph-qr-box">
+        <img id="phQrImg" src="" alt="QR code linking to this patient's schedule">
+        <div class="ph-qr-label">Scan to open your schedule</div>
+        <div class="ph-qr-sub">Point your phone camera here &mdash; no account or download needed</div>
+      </div>
+    </div>
+
+    <div class="ph-homescreen">
+      <strong>Save to your Home Screen &mdash; access like an app</strong>
+      <div class="ph-homescreen-grid">
+        <div>
+          <strong>iPhone (Safari)</strong>
+          <ol>
+            <li>Open in Safari (not Chrome)</li>
+            <li>Tap the Share button at the bottom</li>
+            <li>Tap "Add to Home Screen"</li>
+            <li>Tap "Add"</li>
+            <li>Close Safari &amp; reopen from the Home Screen icon for alarms to work</li>
+          </ol>
+        </div>
+        <div>
+          <strong>Android (Chrome)</strong>
+          <ol>
+            <li>Open in Chrome</li>
+            <li>Tap the three-dot menu (top right)</li>
+            <li>Tap "Add to Home screen"</li>
+            <li>Tap "Add" &mdash; done!</li>
+          </ol>
+        </div>
+      </div>
+      <div class="ph-warn">Dose reminder alarms on iPhone only work when opened from the Home Screen icon in Safari &mdash; not from Chrome or a regular browser tab.</div>
+    </div>
+
+    <div class="ph-privacy">
+      <strong>Your privacy is protected.</strong> This app runs entirely on your own phone. No personal information is collected or shared. Your medication logs stay on your device only.
+    </div>
+
+    <div class="ph-footer">
+      <div>Questions about your medications? Call our office.<br><strong id="phFooterPractice">Practice Name</strong></div>
+      <div class="ph-emergency">Emergency? Call 911 or go to the nearest ER for severe allergic reactions.</div>
+    </div>
+  </div>
 
 </div>
 
@@ -168,9 +287,19 @@ function getAppUrl() {
   return localStorage.getItem('kickstart_app_url') || '';
 }
 
+function getPracticeName() {
+  return localStorage.getItem('kickstart_practice_name') || '';
+}
+
+function getCustomNote() {
+  return localStorage.getItem('kickstart_custom_note') || '';
+}
+
 function editAppUrl() {
   document.getElementById('appUrlCard').style.display = 'block';
   document.getElementById('appUrl').value = getAppUrl();
+  document.getElementById('practiceName').value = getPracticeName();
+  document.getElementById('customNote').value = getCustomNote();
   document.getElementById('appUrl').focus();
 }
 
@@ -178,6 +307,8 @@ function saveAppUrl() {
   var v = document.getElementById('appUrl').value.trim().replace(/\/+$/, '');
   if (!v) return;
   localStorage.setItem('kickstart_app_url', v);
+  localStorage.setItem('kickstart_practice_name', document.getElementById('practiceName').value.trim());
+  localStorage.setItem('kickstart_custom_note', document.getElementById('customNote').value.trim());
   refreshAppUrlDisplay();
   document.getElementById('appUrlCard').style.display = 'none';
 }
@@ -226,10 +357,34 @@ function generate() {
   if (apptDate && apptTime) params.set('apptTime', apptTime);
 
   var link = base + '/?' + params.toString();
+  var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(link);
+
   document.getElementById('linkOutput').value = link;
-  document.getElementById('qrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(link);
+  document.getElementById('qrImg').src = qrSrc;
   document.getElementById('resultCard').classList.add('visible');
   document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Keep the (currently hidden) printable handout in sync with whatever was
+  // just generated, so it's always ready the instant "Print patient handout"
+  // is tapped, without a separate build step.
+  document.getElementById('phQrImg').src = qrSrc;
+  var practiceName = getPracticeName() || '(Practice name not set)';
+  document.getElementById('phPracticeName').textContent = practiceName;
+  document.getElementById('phFooterPractice').textContent = practiceName;
+
+  var customNote = getCustomNote();
+  var noteEl = document.getElementById('phCustomNote');
+  if (customNote) {
+    noteEl.textContent = customNote;
+    noteEl.style.display = 'block';
+  } else {
+    noteEl.style.display = 'none';
+  }
+}
+
+function printHandout() {
+  if (!document.getElementById('resultCard').classList.contains('visible')) return;
+  window.print();
 }
 
 function copyLink() {
