@@ -158,6 +158,10 @@
   <div class="card">
     <h2>Today's patient</h2>
 
+    <label for="welcomeMsg">Message shown in the app (optional)</label>
+    <textarea id="welcomeMsg" maxlength="200" placeholder="e.g. Get well soon! or Thank you for coming in!" oninput="updateWelcomeMsgCount()"></textarea>
+    <div class="hint">Shows as a small banner near the top of the app for this visit only &mdash; the patient can minimize it but can't edit it. <span id="welcomeMsgCount">200</span> characters left.</div>
+
     <div class="field">
       <label for="procName">Procedure</label>
     </div>
@@ -431,6 +435,7 @@ function generate() {
   var telegramOn = document.getElementById('telegramOn').checked;
   var apptDate = document.getElementById('apptDate').value;
   var apptTime = document.getElementById('apptTime').value;
+  var welcomeMsg = document.getElementById('welcomeMsg').value.trim().slice(0, 200);
 
   var params = new URLSearchParams();
   params.set('surgDate', surgDate);
@@ -440,6 +445,7 @@ function generate() {
   if (telegramOn) params.set('telegram', '1');
   if (apptDate) params.set('apptDate', apptDate);
   if (apptDate && apptTime) params.set('apptTime', apptTime);
+  if (welcomeMsg) params.set('msg', welcomeMsg);
 
   var link = base + '/?' + params.toString();
   var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(link);
@@ -465,6 +471,19 @@ function generate() {
   } else {
     noteEl.style.display = 'none';
   }
+
+  // This message is per-visit, not per-device (unlike the fields saved via
+  // saveAppUrl() above) - clear it right after generating so it can't
+  // accidentally get reused for the next patient if staff forget to
+  // change it.
+  document.getElementById('welcomeMsg').value = '';
+  updateWelcomeMsgCount();
+}
+
+function updateWelcomeMsgCount() {
+  var el = document.getElementById('welcomeMsg');
+  var counter = document.getElementById('welcomeMsgCount');
+  if (el && counter) counter.textContent = 200 - el.value.length;
 }
 
 function printHandout() {
