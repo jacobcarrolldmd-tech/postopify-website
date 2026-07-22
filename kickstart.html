@@ -165,6 +165,11 @@
     <input type="text" id="procName" placeholder="e.g. Wisdom Tooth Extraction">
     <div class="hint" id="procHint">Type it exactly as it appears in the app's procedure list, so it matches automatically.</div>
 
+    <label for="procName2">Second procedure (optional &mdash; e.g. also had a sinus exposure)</label>
+    <select id="procSelect2" style="display:none;"></select>
+    <input type="text" id="procName2" placeholder="e.g. Sinus Communication Occurrence">
+    <div class="hint">If more than one procedure applies, the app will flag this one with a one-tap link right inside the first procedure's instructions. Leave blank if only one applies.</div>
+
     <label for="surgDate">Surgery date</label>
     <input type="date" id="surgDate">
 
@@ -354,15 +359,30 @@ function todayStr() {
 // correctly. Fails silently back to the text field if the URL isn't set,
 // the fetch fails, or the list comes back empty, so this is purely additive
 // and never blocks generating a link.
+function populateProcSelect(select, procs) {
+  select.innerHTML = '<option value="">Select a procedure&hellip;</option>';
+  procs.forEach(function(p) {
+    var name = p.name || p;
+    var opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
 function loadProcedureOptions() {
   var api = getInstructionsApi();
   var select = document.getElementById('procSelect');
+  var select2 = document.getElementById('procSelect2');
   var textInput = document.getElementById('procName');
+  var textInput2 = document.getElementById('procName2');
   var hint = document.getElementById('procHint');
 
   if (!api) {
     select.style.display = 'none';
+    select2.style.display = 'none';
     textInput.style.display = 'block';
+    textInput2.style.display = 'block';
     hint.textContent = 'Type it exactly as it appears in the app\'s procedure list, so it matches automatically.';
     return;
   }
@@ -373,24 +393,22 @@ function loadProcedureOptions() {
       var procs = (data && data.procedures) ? data.procedures : (Array.isArray(data) ? data : []);
       if (!procs.length) throw new Error('empty');
 
-      select.innerHTML = '<option value="">Select a procedure&hellip;</option>';
-      procs.forEach(function(p) {
-        var name = p.name || p;
-        var opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
+      populateProcSelect(select, procs);
+      populateProcSelect(select2, procs);
 
       select.style.display = 'block';
+      select2.style.display = 'block';
       textInput.style.display = 'none';
+      textInput2.style.display = 'none';
       hint.textContent = 'Loaded live from the practice\'s procedure list \u2014 always matches exactly.';
     })
     .catch(function() {
       // Couldn't load the list (wrong URL, network issue, etc.) - fall
-      // back to the manual text field rather than leave nothing usable.
+      // back to the manual text fields rather than leave nothing usable.
       select.style.display = 'none';
+      select2.style.display = 'none';
       textInput.style.display = 'block';
+      textInput2.style.display = 'block';
       hint.textContent = 'Couldn\'t load the live procedure list \u2014 type it exactly as it appears in the app instead.';
     });
 }
@@ -403,6 +421,10 @@ function generate() {
   var proc = (procSelect.style.display !== 'none')
     ? procSelect.value
     : document.getElementById('procName').value.trim();
+  var procSelect2 = document.getElementById('procSelect2');
+  var proc2 = (procSelect2.style.display !== 'none')
+    ? procSelect2.value
+    : document.getElementById('procName2').value.trim();
   var surgDate = document.getElementById('surgDate').value || todayStr();
   var ketoOn = document.getElementById('ketorolacOn').checked;
   var ketoTime = document.getElementById('ketorolacTime').value;
@@ -413,6 +435,7 @@ function generate() {
   var params = new URLSearchParams();
   params.set('surgDate', surgDate);
   if (proc) params.set('proc', proc);
+  if (proc2) params.set('proc2', proc2);
   if (ketoOn && ketoTime) params.set('ketorolacTime', ketoTime);
   if (telegramOn) params.set('telegram', '1');
   if (apptDate) params.set('apptDate', apptDate);
