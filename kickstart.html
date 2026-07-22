@@ -31,12 +31,12 @@
 
   label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;}
   .hint{font-size:12px;color:var(--gray);margin:-4px 0 10px;line-height:1.4;}
-  input[type=text],input[type=date],input[type=time],input[type=url],textarea{
+  input[type=text],input[type=date],input[type=time],input[type=url],textarea,select{
     width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
     font-size:15px;font-family:inherit;color:var(--navy);background:#fff;margin-bottom:14px;
   }
   textarea{resize:vertical;min-height:70px;}
-  input:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
 
   .field{margin-bottom:2px;}
 
@@ -144,6 +144,10 @@
     <label for="practiceName">Practice name (for the printed handout)</label>
     <input type="text" id="practiceName" placeholder="e.g. Valley Endodontics &amp; Oral Surgery">
 
+    <label for="instructionsApi">Instructions API URL (optional &mdash; shows a procedure dropdown)</label>
+    <input type="url" id="instructionsApi" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="hint">Found inside the app's own source as INSTRUCTIONS_API. When set, the procedure field below becomes a dropdown of the practice's actual live procedures instead of free text &mdash; guaranteeing it always matches. Leave blank to keep typing it manually.</div>
+
     <label for="customNote">Custom note for the printed handout (optional)</label>
     <textarea id="customNote" placeholder="e.g. your own pain-management guidance, dosing notes, or anything else specific to your practice. Leave blank to omit this box entirely."></textarea>
     <div class="hint">This is your own wording, printed exactly as typed &mdash; nothing here is written or suggested automatically.</div>
@@ -157,8 +161,9 @@
     <div class="field">
       <label for="procName">Procedure</label>
     </div>
+    <select id="procSelect" style="display:none;"></select>
     <input type="text" id="procName" placeholder="e.g. Wisdom Tooth Extraction">
-    <div class="hint">Type it exactly as it appears in the app's procedure list, so it matches automatically.</div>
+    <div class="hint" id="procHint">Type it exactly as it appears in the app's procedure list, so it matches automatically.</div>
 
     <label for="surgDate">Surgery date</label>
     <input type="date" id="surgDate">
@@ -295,10 +300,15 @@ function getCustomNote() {
   return localStorage.getItem('kickstart_custom_note') || '';
 }
 
+function getInstructionsApi() {
+  return localStorage.getItem('kickstart_instructions_api') || '';
+}
+
 function editAppUrl() {
   document.getElementById('appUrlCard').style.display = 'block';
   document.getElementById('appUrl').value = getAppUrl();
   document.getElementById('practiceName').value = getPracticeName();
+  document.getElementById('instructionsApi').value = getInstructionsApi();
   document.getElementById('customNote').value = getCustomNote();
   document.getElementById('appUrl').focus();
 }
@@ -308,9 +318,11 @@ function saveAppUrl() {
   if (!v) return;
   localStorage.setItem('kickstart_app_url', v);
   localStorage.setItem('kickstart_practice_name', document.getElementById('practiceName').value.trim());
+  localStorage.setItem('kickstart_instructions_api', document.getElementById('instructionsApi').value.trim());
   localStorage.setItem('kickstart_custom_note', document.getElementById('customNote').value.trim());
   refreshAppUrlDisplay();
   document.getElementById('appUrlCard').style.display = 'none';
+  loadProcedureOptions();
 }
 
 function refreshAppUrlDisplay() {
@@ -336,11 +348,61 @@ function todayStr() {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+// If a practice's Instructions API URL is set, fetch its live procedure
+// list and show a dropdown instead of a free-text field - this guarantees
+// an exact match every time instead of relying on someone typing the name
+// correctly. Fails silently back to the text field if the URL isn't set,
+// the fetch fails, or the list comes back empty, so this is purely additive
+// and never blocks generating a link.
+function loadProcedureOptions() {
+  var api = getInstructionsApi();
+  var select = document.getElementById('procSelect');
+  var textInput = document.getElementById('procName');
+  var hint = document.getElementById('procHint');
+
+  if (!api) {
+    select.style.display = 'none';
+    textInput.style.display = 'block';
+    hint.textContent = 'Type it exactly as it appears in the app\'s procedure list, so it matches automatically.';
+    return;
+  }
+
+  fetch(api + '?action=list')
+    .then(function(r) { if (!r.ok) throw new Error('http'); return r.json(); })
+    .then(function(data) {
+      var procs = (data && data.procedures) ? data.procedures : (Array.isArray(data) ? data : []);
+      if (!procs.length) throw new Error('empty');
+
+      select.innerHTML = '<option value="">Select a procedure&hellip;</option>';
+      procs.forEach(function(p) {
+        var name = p.name || p;
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+
+      select.style.display = 'block';
+      textInput.style.display = 'none';
+      hint.textContent = 'Loaded live from the practice\'s procedure list \u2014 always matches exactly.';
+    })
+    .catch(function() {
+      // Couldn't load the list (wrong URL, network issue, etc.) - fall
+      // back to the manual text field rather than leave nothing usable.
+      select.style.display = 'none';
+      textInput.style.display = 'block';
+      hint.textContent = 'Couldn\'t load the live procedure list \u2014 type it exactly as it appears in the app instead.';
+    });
+}
+
 function generate() {
   var base = getAppUrl();
   if (!base) { editAppUrl(); return; }
 
-  var proc = document.getElementById('procName').value.trim();
+  var procSelect = document.getElementById('procSelect');
+  var proc = (procSelect.style.display !== 'none')
+    ? procSelect.value
+    : document.getElementById('procName').value.trim();
   var surgDate = document.getElementById('surgDate').value || todayStr();
   var ketoOn = document.getElementById('ketorolacOn').checked;
   var ketoTime = document.getElementById('ketorolacTime').value;
@@ -400,6 +462,7 @@ function copyLink() {
 
 document.getElementById('surgDate').value = todayStr();
 refreshAppUrlDisplay();
+loadProcedureOptions();
 </script>
 </body>
 </html>
