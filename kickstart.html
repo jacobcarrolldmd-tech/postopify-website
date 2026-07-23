@@ -51,6 +51,8 @@
 
   #ketorolacTimeField{display:none;}
   #ketorolacTimeField.visible{display:block;}
+  #patient2KetorolacTimeField{display:none;}
+  #patient2KetorolacTimeField.visible{display:block;}
 
   .btn{
     display:block;width:100%;padding:14px;border:none;border-radius:var(--radius-sm);
@@ -203,6 +205,38 @@
 
   <div class="card">
     <div class="toggle-row" style="padding-bottom:0;">
+      <label for="secondPatientOn">Second patient in this visit? (e.g. siblings)</label>
+      <div class="switch">
+        <input type="checkbox" id="secondPatientOn" onchange="toggleSecondPatient()">
+        <span class="slider" onclick="document.getElementById('secondPatientOn').click()"></span>
+      </div>
+    </div>
+    <div class="hint">Generates a second, separate QR code/link below &mdash; not one link encoding both. No name ever travels through either link; each child still types their own name into Patient Information once they open their own.</div>
+
+    <div id="secondPatientFields" style="display:none;">
+      <label for="patient2Proc">Second patient's procedure</label>
+      <select id="patient2ProcSelect" style="display:none;"></select>
+      <input type="text" id="patient2Proc" placeholder="e.g. Wisdom Tooth Extraction">
+
+      <label for="patient2SurgDate">Second patient's surgery date</label>
+      <input type="date" id="patient2SurgDate">
+
+      <div class="toggle-row">
+        <label for="patient2KetorolacOn">Ketorolac (Toradol) given during procedure?</label>
+        <div class="switch">
+          <input type="checkbox" id="patient2KetorolacOn" onchange="toggleKetorolacTime2()">
+          <span class="slider" onclick="document.getElementById('patient2KetorolacOn').click()"></span>
+        </div>
+      </div>
+      <div id="patient2KetorolacTimeField">
+        <label for="patient2KetorolacTime">Time given</label>
+        <input type="time" id="patient2KetorolacTime">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toggle-row" style="padding-bottom:0;">
       <label for="telegramOn">Prompt to connect Telegram right away?</label>
       <div class="switch">
         <input type="checkbox" id="telegramOn" checked>
@@ -222,6 +256,18 @@
       <button class="btn-copy" type="button" onclick="copyLink()">Copy</button>
     </div>
     <button class="btn btn-secondary" type="button" onclick="printHandout()">Print patient handout</button>
+  </div>
+
+  <div class="card result" id="resultCard2">
+    <h2>Second patient &mdash; ready to hand off</h2>
+    <div class="qr-box">
+      <img id="qrImg2" src="" alt="QR code linking to the second patient's Postopify setup">
+    </div>
+    <div class="link-row">
+      <input type="text" id="linkOutput2" readonly>
+      <button class="btn-copy" type="button" onclick="copyLink2()">Copy</button>
+    </div>
+    <div class="hint">This link creates a brand-new profile in the same app instead of overwriting the first patient's &mdash; the parent switches between them using the profile menu inside the app.</div>
   </div>
 
   <p class="privacy-note">This link only carries the procedure name, surgery date, and (if given) the ketorolac time and appointment — no patient name or other identifying information.</p>
@@ -352,6 +398,23 @@ function toggleKetorolacTime() {
   }
 }
 
+function toggleSecondPatient() {
+  var on = document.getElementById('secondPatientOn').checked;
+  document.getElementById('secondPatientFields').style.display = on ? 'block' : 'none';
+}
+
+function toggleKetorolacTime2() {
+  var on = document.getElementById('patient2KetorolacOn').checked;
+  var field = document.getElementById('patient2KetorolacTimeField');
+  field.classList.toggle('visible', on);
+  if (on && !document.getElementById('patient2KetorolacTime').value) {
+    var now = new Date();
+    var hh = String(now.getHours()).padStart(2, '0');
+    var mm = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('patient2KetorolacTime').value = hh + ':' + mm;
+  }
+}
+
 function todayStr() {
   var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -378,15 +441,19 @@ function loadProcedureOptions() {
   var api = getInstructionsApi();
   var select = document.getElementById('procSelect');
   var select2 = document.getElementById('procSelect2');
+  var select2b = document.getElementById('patient2ProcSelect');
   var textInput = document.getElementById('procName');
   var textInput2 = document.getElementById('procName2');
+  var textInput2b = document.getElementById('patient2Proc');
   var hint = document.getElementById('procHint');
 
   if (!api) {
     select.style.display = 'none';
     select2.style.display = 'none';
+    select2b.style.display = 'none';
     textInput.style.display = 'block';
     textInput2.style.display = 'block';
+    textInput2b.style.display = 'block';
     hint.textContent = 'Type it exactly as it appears in the app\'s procedure list, so it matches automatically.';
     return;
   }
@@ -399,11 +466,14 @@ function loadProcedureOptions() {
 
       populateProcSelect(select, procs);
       populateProcSelect(select2, procs);
+      populateProcSelect(select2b, procs);
 
       select.style.display = 'block';
       select2.style.display = 'block';
+      select2b.style.display = 'block';
       textInput.style.display = 'none';
       textInput2.style.display = 'none';
+      textInput2b.style.display = 'none';
       hint.textContent = 'Loaded live from the practice\'s procedure list \u2014 always matches exactly.';
     })
     .catch(function() {
@@ -411,8 +481,10 @@ function loadProcedureOptions() {
       // back to the manual text fields rather than leave nothing usable.
       select.style.display = 'none';
       select2.style.display = 'none';
+      select2b.style.display = 'none';
       textInput.style.display = 'block';
       textInput2.style.display = 'block';
+      textInput2b.style.display = 'block';
       hint.textContent = 'Couldn\'t load the live procedure list \u2014 type it exactly as it appears in the app instead.';
     });
 }
@@ -455,6 +527,37 @@ function generate() {
   document.getElementById('resultCard').classList.add('visible');
   document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  // Second patient (e.g. a sibling seen in the same visit) - a completely
+  // separate link/QR code carrying its own newProfile=1 flag, rather than
+  // one link encoding both children. Keeps the same no-PHI-in-URL design
+  // intact: neither link ever carries a name.
+  var secondPatientOn = document.getElementById('secondPatientOn').checked;
+  var resultCard2 = document.getElementById('resultCard2');
+  if (secondPatientOn) {
+    var p2ProcSelect = document.getElementById('patient2ProcSelect');
+    var p2Proc = (p2ProcSelect.style.display !== 'none')
+      ? p2ProcSelect.value
+      : document.getElementById('patient2Proc').value.trim();
+    var p2SurgDate = document.getElementById('patient2SurgDate').value || todayStr();
+    var p2KetoOn = document.getElementById('patient2KetorolacOn').checked;
+    var p2KetoTime = document.getElementById('patient2KetorolacTime').value;
+
+    var params2 = new URLSearchParams();
+    params2.set('surgDate', p2SurgDate);
+    if (p2Proc) params2.set('proc', p2Proc);
+    if (p2KetoOn && p2KetoTime) params2.set('ketorolacTime', p2KetoTime);
+    if (telegramOn) params2.set('telegram', '1');
+    params2.set('newProfile', '1');
+
+    var link2 = base + '/?' + params2.toString();
+    var qrSrc2 = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(link2);
+    document.getElementById('linkOutput2').value = link2;
+    document.getElementById('qrImg2').src = qrSrc2;
+    resultCard2.classList.add('visible');
+  } else {
+    resultCard2.classList.remove('visible');
+  }
+
   // Keep the (currently hidden) printable handout in sync with whatever was
   // just generated, so it's always ready the instant "Print patient handout"
   // is tapped, without a separate build step.
@@ -478,6 +581,28 @@ function generate() {
   // change it.
   document.getElementById('welcomeMsg').value = '';
   updateWelcomeMsgCount();
+
+  // Same reasoning for the second-patient fields - per-visit, not
+  // per-device, so they shouldn't carry over to the next set of siblings.
+  document.getElementById('patient2Proc').value = '';
+  if (document.getElementById('patient2ProcSelect')) document.getElementById('patient2ProcSelect').value = '';
+  document.getElementById('patient2SurgDate').value = '';
+  document.getElementById('patient2KetorolacOn').checked = false;
+  document.getElementById('patient2KetorolacTime').value = '';
+  document.getElementById('patient2KetorolacTimeField').classList.remove('visible');
+  document.getElementById('secondPatientOn').checked = false;
+  document.getElementById('secondPatientFields').style.display = 'none';
+}
+
+function copyLink2() {
+  var input = document.getElementById('linkOutput2');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(input.value);
+  } catch (e) {
+    document.execCommand('copy');
+  }
 }
 
 function updateWelcomeMsgCount() {
