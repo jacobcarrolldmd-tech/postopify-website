@@ -106,8 +106,10 @@
     .ph-step strong{display:block;font-size:12px;}
     .ph-step div div{color:var(--gray);}
 
-    .ph-qr-box{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
-    .ph-qr-box img{width:150px;height:150px;}
+    .ph-qr-col{flex:1;display:flex;flex-direction:column;gap:10px;}
+    .ph-qr-box{border:1.5px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+    .ph-qr-box img{width:130px;height:130px;}
+    .ph-qr-box .ph-qr-patient-label{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px;}
     .ph-qr-box .ph-qr-label{font-size:12px;font-weight:700;margin-top:6px;}
     .ph-qr-sub{font-size:10px;color:var(--gray);margin-top:2px;}
 
@@ -297,10 +299,19 @@
         <div class="ph-step"><span>5</span><div><strong>Auto-saves</strong><div>Close and come back anytime &mdash; nothing is lost. No account needed.</div></div></div>
         <div class="ph-step"><span>6</span><div><strong>iPhone dose alarms</strong><div>For alarms to work on iPhone, add the app to your Home Screen first (see below).</div></div></div>
       </div>
-      <div class="ph-qr-box">
-        <img id="phQrImg" src="" alt="QR code linking to this patient's schedule">
-        <div class="ph-qr-label">Scan to open your schedule</div>
-        <div class="ph-qr-sub">Point your phone camera here &mdash; no account or download needed</div>
+      <div class="ph-qr-col">
+        <div class="ph-qr-box">
+          <div class="ph-qr-patient-label" id="phQrLabel1" style="display:none;">Patient 1</div>
+          <img id="phQrImg" src="" alt="QR code linking to this patient's schedule">
+          <div class="ph-qr-label">Scan to open your schedule</div>
+          <div class="ph-qr-sub">Point your phone camera here &mdash; no account or download needed</div>
+        </div>
+        <div class="ph-qr-box" id="phQrBox2" style="display:none;">
+          <div class="ph-qr-patient-label">Patient 2</div>
+          <img id="phQrImg2" src="" alt="QR code linking to the second patient's schedule">
+          <div class="ph-qr-label">Scan to open your schedule</div>
+          <div class="ph-qr-sub">Point your phone camera here &mdash; no account or download needed</div>
+        </div>
       </div>
     </div>
 
@@ -565,6 +576,21 @@ function generate() {
   var practiceName = getPracticeName() || '(Practice name not set)';
   document.getElementById('phPracticeName').textContent = practiceName;
   document.getElementById('phFooterPractice').textContent = practiceName;
+
+  // Only label the QR codes "Patient 1" / "Patient 2" when there actually
+  // are two on the sheet - a single-patient handout stays exactly as
+  // clean and unlabeled as before.
+  var phQrLabel1 = document.getElementById('phQrLabel1');
+  var phQrBox2 = document.getElementById('phQrBox2');
+  if (secondPatientOn) {
+    phQrLabel1.textContent = 'Patient 1';
+    phQrLabel1.style.display = 'block';
+    document.getElementById('phQrImg2').src = qrSrc2;
+    phQrBox2.style.display = 'block';
+  } else {
+    phQrLabel1.style.display = 'none';
+    phQrBox2.style.display = 'none';
+  }
 
   var customNote = getCustomNote();
   var noteEl = document.getElementById('phCustomNote');
