@@ -1,206 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex">
-<title>Postopify — Interactive Demo</title>
+<title>Try Postopify — Interactive demo</title>
+<meta name="description" content="A hands-on demo of the Postopify patient view. Enter a surgery date, check off prescribed medications, and watch the dose schedule build itself.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --navy:#10243E;
-  --navy-2:#1B3A5C;
-  --teal:#0E9AA7;
-  --teal-dark:#0B7C87;
-  --iodine:#B4531A;
-  --ink:#12202F;
-  --muted:#5B7086;
-  --line:#DDE5EC;
-  --bg:#F4F7FA;
-  --card:#FFFFFF;
-  --warn-bg:#FFF6E8;
-  --warn-line:#E8C48A;
-  --ok-bg:#E9F7F5;
-  --sans:'Space Grotesk',system-ui,-apple-system,Segoe UI,sans-serif;
-  --serif:'Source Serif 4',Georgia,serif;
-  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-button{font-family:inherit}
+  :root{
+    --ink:#16233A;
+    --paper:#EFF1EA;
+    --paper-raised:#FFFFFF;
+    --teal:#2B5F52;
+    --teal-deep:#1D4438;
+    --iodine:#C1592E;
+    --line:#C7CBBF;
+    --mint-pale:#DFE7E0;
+    --ink-soft:#4B5B63;
+    --hairline:#E4E7DF;
 
-/* ---------- Page chrome (marketing site wrapper) ---------- */
-.page{max-width:1180px;margin:0 auto;padding:32px 20px 80px}
-.page-head{text-align:center;max-width:720px;margin:0 auto 28px}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin:0 0 10px}
-.page-head h1{font-family:var(--serif);font-size:clamp(28px,4vw,42px);line-height:1.15;margin:0 0 12px;color:var(--navy)}
-.page-head p{font-size:16px;line-height:1.6;color:var(--muted);margin:0}
-.demo-banner{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
-  background:var(--navy);color:#fff;border-radius:12px;padding:12px 18px;margin:0 auto 26px;max-width:820px;font-size:14px}
-.demo-banner strong{font-weight:700;letter-spacing:.04em}
-.pill{background:var(--iodine);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-  padding:4px 9px;border-radius:999px;text-transform:uppercase}
+    --display:'Space Grotesk', sans-serif;
+    --body:'Source Serif 4', serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
 
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
-@media(max-width:900px){.layout{grid-template-columns:1fr}}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:var(--display); font-weight:600; letter-spacing:-0.01em; margin:0;}
+  .mono{font-family:var(--mono);}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--iodine); outline-offset:3px;}
 
-/* ---------- Device frame ---------- */
-.device{background:var(--navy);border-radius:26px;padding:14px;box-shadow:0 24px 60px rgba(16,36,62,.22)}
-.device-bar{display:flex;align-items:center;justify-content:space-between;padding:2px 8px 12px;color:#9FB6CC;font-family:var(--mono);font-size:11px}
-.screen{background:var(--card);border-radius:16px;overflow:hidden;height:760px;overflow-y:auto;position:relative;scroll-behavior:smooth}
-@media(max-width:600px){.screen{height:620px}}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
 
-/* ---------- Side rail ---------- */
-.rail{position:sticky;top:24px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
-.rail h3{font-family:var(--serif);font-size:18px;margin:0 0 6px;color:var(--navy)}
-.rail p{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 14px}
-.rail ol{margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;color:var(--ink)}
-.rail li{margin-bottom:7px}
-.rail li b{color:var(--navy)}
-.rail-reset{margin-top:16px;width:100%;background:#fff;border:1px solid var(--line);color:var(--muted);
-  padding:10px;border-radius:9px;font-size:13px;cursor:pointer}
-.rail-reset:hover{border-color:var(--teal);color:var(--teal)}
+  /* ---------- header (matches marketing site) ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(239,241,234,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-row{display:flex; align-items:center; justify-content:space-between; padding:16px 0;}
+  .logo{display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:19px; text-decoration:none; color:var(--ink);}
+  .logo .icon{width:26px; height:26px; flex:none;}
+  nav{display:flex; gap:28px; align-items:center;}
+  nav a{font-family:var(--mono); font-size:13px; text-decoration:none; color:var(--ink-soft); letter-spacing:0.02em;}
+  nav a:hover{color:var(--teal);}
+  nav a.cta{color:var(--paper-raised); background:var(--teal); padding:9px 16px; border-radius:3px;}
+  nav a.cta:hover{background:var(--teal-deep);}
+  @media (max-width:860px){ nav{display:none;} }
 
-/* ---------- App styles (inside screen) ---------- */
-.app{font-size:15px}
-.appbar{background:var(--navy);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:20}
-.appbar .brand{display:flex;align-items:center;gap:9px}
-.logo-dot{width:26px;height:26px;border-radius:7px;background:var(--teal);display:grid;place-items:center;font-size:14px}
-.appbar h2{font-size:15px;margin:0;font-weight:500}
-.appbar .tools{display:flex;gap:6px;align-items:center}
-.chip{background:rgba(255,255,255,.12);border:0;color:#fff;font-size:11px;padding:5px 9px;border-radius:7px;cursor:pointer}
-.chip.on{background:var(--teal)}
+  /* ---------- page intro ---------- */
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--iodine); display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{content:"\2610"; font-size:14px;}
+  .intro{padding:56px 0 30px;}
+  .intro h1{font-size:clamp(30px,4.2vw,46px); line-height:1.06; margin-bottom:18px; max-width:20ch;}
+  .intro p.lede{font-size:19px; color:var(--ink-soft); max-width:56ch; margin:0;}
 
-.app-body{padding:16px 16px 40px}
-.section{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
-.section-head{display:flex;align-items:center;gap:11px;padding:14px 15px;cursor:pointer;user-select:none}
-.section-head .ico{width:32px;height:32px;border-radius:9px;background:var(--ok-bg);display:grid;place-items:center;font-size:16px;flex:none}
-.section-head .txt{flex:1;min-width:0}
-.section-head h3{margin:0;font-size:15px;color:var(--navy);font-weight:500}
-.section-head .sub{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.4}
-.caret{color:var(--muted);font-size:12px;transition:transform .18s}
-.section.open .caret{transform:rotate(180deg)}
-.section-body{padding:0 15px 15px;display:none}
-.section.open .section-body{display:block}
+  .notice{
+    display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;
+    background:var(--paper-raised); border:1px dashed var(--line); border-radius:6px;
+    padding:18px 22px; margin:26px 0 34px; font-size:15px; color:var(--ink-soft);
+  }
+  .notice b{color:var(--ink);}
+  .tag{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    background:var(--iodine); color:#fff; padding:5px 10px; border-radius:3px; flex:none;
+  }
 
-label.fld{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 5px}
-input[type=text],input[type=date],input[type=time],select{
-  width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;font-size:14.5px;
-  font-family:inherit;color:var(--ink);background:#fff}
-input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;border-color:var(--teal)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .layout{display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:36px; align-items:start; padding-bottom:70px;}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
 
-.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:#F7FAFC;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-top:12px}
-.switch-row span{font-size:13.5px;color:var(--ink)}
-.sw{position:relative;width:46px;height:26px;flex:none}
-.sw input{opacity:0;width:0;height:0;position:absolute}
-.sw .track{position:absolute;inset:0;background:#C8D3DD;border-radius:99px;transition:.18s;cursor:pointer}
-.sw .track:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.18s}
-.sw input:checked + .track{background:var(--teal)}
-.sw input:checked + .track:before{transform:translateX(20px)}
+  /* ---------- device frame ---------- */
+  .device{
+    background:var(--ink); border-radius:26px; padding:14px;
+    box-shadow:0 24px 60px -30px rgba(22,35,58,0.6);
+  }
+  .device-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:2px 10px 12px; color:#8E9CAB; font-family:var(--mono); font-size:11px;
+  }
+  .screen{
+    background:var(--paper-raised); border-radius:14px; overflow:hidden;
+    height:760px; overflow-y:auto; position:relative; scroll-behavior:smooth;
+  }
+  @media (max-width:600px){ .screen{height:620px;} }
 
-.note{font-size:12.5px;line-height:1.55;color:var(--muted);background:#F7FAFC;border-left:3px solid var(--teal);
-  padding:10px 12px;border-radius:0 8px 8px 0;margin-top:12px}
-.note.warn{background:var(--warn-bg);border-left-color:var(--iodine);color:#6B3B12}
-.note b{color:inherit}
+  /* ---------- side rail ---------- */
+  .rail{
+    position:sticky; top:92px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:6px; padding:26px 24px;
+    box-shadow:0 18px 40px -30px rgba(22,35,58,0.4);
+  }
+  .rail h2{font-size:20px; margin-bottom:8px;}
+  .rail > p{font-size:15px; color:var(--ink-soft); margin:0 0 18px;}
+  .rail ol{margin:0; padding-left:20px; font-size:15px; line-height:1.55; color:var(--ink);}
+  .rail li{margin-bottom:11px;}
+  .rail li b{font-weight:600;}
+  .rail-reset{
+    margin-top:20px; width:100%; background:transparent; border:1px solid var(--ink);
+    color:var(--ink); padding:12px; border-radius:3px; font-family:var(--mono); font-size:13px; cursor:pointer;
+  }
+  .rail-reset:hover{border-color:var(--teal); color:var(--teal);}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--teal);color:#fff;border:0;
-  padding:12px 16px;border-radius:10px;font-size:14px;cursor:pointer;width:100%;margin-top:12px;font-weight:500}
-.btn:hover{background:var(--teal-dark)}
-.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
-.btn.ghost:hover{background:#F4F7FA}
-.btn.navy{background:var(--navy)}
-.btn.navy:hover{background:var(--navy-2)}
-.btn.half{width:calc(50% - 5px)}
+  /* ---------- app UI inside the screen ---------- */
+  .app{font-size:15px;}
+  .appbar{
+    background:var(--ink); color:#fff; padding:14px 16px;
+    display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20;
+  }
+  .appbar .brand{display:flex; align-items:center; gap:10px;}
+  .logo-dot{
+    width:26px; height:26px; border-radius:5px; background:var(--mint-pale);
+    display:grid; place-items:center; flex:none;
+  }
+  .appbar h2{font-family:var(--display); font-size:14.5px; margin:0; font-weight:500;}
+  .appbar .tools{display:flex; gap:6px; align-items:center;}
+  .chip{
+    background:rgba(255,255,255,0.14); border:0; color:#fff;
+    font-family:var(--mono); font-size:11px; padding:6px 10px; border-radius:3px; cursor:pointer;
+  }
+  .chip.on{background:var(--teal);}
 
-/* day tabs */
-.daytabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
-.daytab{flex:none;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12.5px;
-  padding:8px 12px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.daytab.active{background:var(--navy);border-color:var(--navy);color:#fff}
-.daytab.today{border-color:var(--teal);color:var(--teal);font-weight:500}
-.daytab.today.active{color:#fff}
-.day-readout{font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:6px;min-height:16px}
+  .app-body{padding:18px 16px 40px;}
+  .section{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:6px;
+    margin-bottom:14px; overflow:hidden;
+  }
+  .section-head{display:flex; align-items:center; gap:12px; padding:15px; cursor:pointer; user-select:none;}
+  .section-head .ico{
+    width:32px; height:32px; border-radius:4px; background:var(--mint-pale);
+    display:grid; place-items:center; font-size:15px; flex:none;
+  }
+  .section-head .txt{flex:1; min-width:0;}
+  .section-head h3{font-size:15.5px; font-weight:600;}
+  .section-head .sub{font-size:13.5px; color:var(--ink-soft); margin-top:3px; line-height:1.45;}
+  .caret{color:var(--ink-soft); font-size:11px; transition:transform .18s;}
+  .section.open .caret{transform:rotate(180deg);}
+  .section-body{padding:0 15px 16px; display:none;}
+  .section.open .section-body{display:block;}
 
-/* checklist */
-.checklist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.chk{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:10px;
-  font-size:13px;cursor:pointer;background:#fff}
-.chk input{accent-color:var(--teal);width:16px;height:16px}
-.chk.sel{border-color:var(--teal);background:var(--ok-bg)}
+  label.fld{display:block; font-family:var(--mono); font-size:11.5px; letter-spacing:0.04em;
+    text-transform:uppercase; color:var(--ink-soft); margin:14px 0 6px;}
+  input[type=text],input[type=date],input[type=time],select{
+    width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:3px;
+    font-size:15px; font-family:var(--body); color:var(--ink); background:var(--paper-raised);
+  }
+  input:focus,select:focus{outline:2px solid var(--iodine); outline-offset:1px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
 
-/* dose schedule */
-.doses{margin-top:12px;border:1px dashed var(--line);border-radius:10px;padding:10px;background:#FBFDFE}
-.doses h4{margin:0 0 8px;font-size:12px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase}
-.dose{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EEF3F7;font-size:13.5px}
-.dose:last-child{border-bottom:0}
-.dose .t{font-family:var(--mono);color:var(--navy);font-weight:500}
-.dose .lab{color:var(--muted);font-size:12.5px}
-.dose .tick{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;padding:4px 8px;cursor:pointer;color:var(--muted)}
-.dose.taken .tick{background:var(--teal);border-color:var(--teal);color:#fff}
-.dose.taken .t{text-decoration:line-through;color:var(--muted)}
-.empty-hint{font-size:12.5px;color:var(--muted);font-style:italic}
+  .switch-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--paper); border:1px solid var(--line); border-radius:4px;
+    padding:12px 13px; margin-top:14px;
+  }
+  .switch-row span{font-size:14.5px;}
+  .sw{position:relative; width:46px; height:26px; flex:none;}
+  .sw input{opacity:0; width:0; height:0; position:absolute;}
+  .sw .track{position:absolute; inset:0; background:var(--line); border-radius:99px; transition:.18s; cursor:pointer;}
+  .sw .track::before{content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.18s;}
+  .sw input:checked + .track{background:var(--teal);}
+  .sw input:checked + .track::before{transform:translateX(20px);}
 
-.locked{opacity:.5;pointer-events:none}
-.lock-msg{font-size:12.5px;color:var(--iodine);margin-top:10px;display:none}
-.lock-msg.show{display:block}
+  .note{
+    font-size:14px; line-height:1.5; color:var(--ink-soft); background:var(--paper);
+    border-left:2px solid var(--teal); padding:11px 13px; border-radius:0 4px 4px 0; margin-top:14px;
+  }
+  .note.warn{background:#F7EAE2; border-left-color:var(--iodine); color:#7A3417;}
+  .note b{color:inherit; font-weight:600;}
 
-.reminder-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #EEF3F7;font-size:13.5px}
-.reminder-row:last-child{border-bottom:0}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--teal); color:#fff; border:1px solid transparent;
+    padding:13px 18px; border-radius:3px; font-family:var(--mono); font-size:13.5px;
+    cursor:pointer; width:100%; margin-top:14px;
+  }
+  .btn:hover{background:var(--teal-deep);}
+  .btn.ghost{background:transparent; color:var(--ink); border-color:var(--ink);}
+  .btn.ghost:hover{border-color:var(--teal); color:var(--teal);}
+  .btn.iodine{background:var(--iodine);}
+  .btn.iodine:hover{background:#A3491F;}
+  .btn.half{width:calc(50% - 6px);}
 
-/* consent gate */
-.gate{position:absolute;inset:0;background:#fff;z-index:40;overflow-y:auto;padding:26px 20px}
-.gate.hide{display:none}
-.gate h2{font-family:var(--serif);font-size:22px;color:var(--navy);margin:0 0 4px}
-.gate .lede{font-size:13px;color:var(--muted);margin:0 0 18px}
-.gate .blk{margin-bottom:14px}
-.gate .blk h4{margin:0 0 4px;font-size:14px;color:var(--navy)}
-.gate .blk p{margin:0;font-size:13px;line-height:1.55;color:var(--muted)}
-.gate .ack{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink);
-  background:#F7FAFC;border-radius:10px;padding:12px;line-height:1.5;margin-top:16px}
-.gate .ack input{accent-color:var(--teal);margin-top:2px;width:16px;height:16px;flex:none}
+  /* day tabs */
+  .daytabs{display:flex; gap:7px; overflow-x:auto; padding:5px 0 9px;}
+  .daytab{
+    flex:none; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft);
+    font-family:var(--mono); font-size:12px; padding:9px 13px; border-radius:3px; cursor:pointer; white-space:nowrap;
+  }
+  .daytab.active{background:var(--ink); border-color:var(--ink); color:#fff;}
+  .daytab.today{border-color:var(--teal); color:var(--teal);}
+  .daytab.today.active{color:#fff; border-color:var(--ink);}
+  .day-readout{font-family:var(--mono); font-size:12px; color:var(--teal); margin-top:8px; min-height:16px;}
 
-/* toast */
-.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--navy);color:#fff;
-  padding:13px 18px;border-radius:11px;font-size:13.5px;box-shadow:0 12px 34px rgba(16,36,62,.3);
-  opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:min(440px,90vw);text-align:center;line-height:1.5}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.toast .pill{margin-right:8px}
+  /* prescribed checklist */
+  .checklist{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:14px;}
+  .chk{
+    display:flex; align-items:center; gap:9px; border:1px solid var(--line); border-radius:4px;
+    padding:11px; font-size:14px; cursor:pointer; background:var(--paper-raised);
+  }
+  .chk input{accent-color:var(--teal); width:16px; height:16px;}
+  .chk.sel{border-color:var(--teal); background:var(--mint-pale);}
 
-/* simulated notification */
-.fakenotif{position:absolute;left:12px;right:12px;top:12px;background:rgba(255,255,255,.97);
-  border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 12px 30px rgba(16,36,62,.18);
-  z-index:60;transform:translateY(-140%);transition:transform .3s cubic-bezier(.2,.8,.3,1);backdrop-filter:blur(6px)}
-.fakenotif.show{transform:translateY(0)}
-.fakenotif .hdr{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);
-  font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
-.fakenotif .msg{font-size:13.5px;color:var(--ink);line-height:1.45}
+  /* dose schedule */
+  .doses{margin-top:14px; border:1px dashed var(--line); border-radius:4px; padding:12px; background:var(--paper);}
+  .doses h4{
+    margin:0 0 9px; font-family:var(--mono); font-size:11px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--ink-soft); font-weight:400;
+  }
+  .dose{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 0; border-bottom:1px solid var(--hairline); font-size:14px;}
+  .dose:last-child{border-bottom:none;}
+  .dose .t{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
+  .dose .lab{color:var(--ink-soft); font-size:13.5px; flex:1; text-align:left;}
+  .dose .tick{
+    border:1px solid var(--line); background:var(--paper-raised); border-radius:3px;
+    font-family:var(--mono); font-size:10.5px; padding:5px 9px; cursor:pointer; color:var(--ink-soft); flex:none;
+  }
+  .dose.taken .tick{background:var(--teal); border-color:var(--teal); color:#fff;}
+  .dose.taken .t{text-decoration:line-through; color:var(--ink-soft);}
+  .empty-hint{font-size:13.5px; color:var(--ink-soft); font-style:italic; margin:0;}
 
-.footnote{text-align:center;font-size:12.5px;color:var(--muted);margin-top:22px;line-height:1.6}
+  .locked{opacity:.45; pointer-events:none;}
+  .lock-msg{font-family:var(--mono); font-size:12px; color:var(--iodine); margin-top:12px; display:none;}
+  .lock-msg.show{display:block;}
+
+  .reminder-row{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 0; border-bottom:1px solid var(--hairline); font-size:14.5px;}
+  .reminder-row:last-child{border-bottom:none;}
+
+  /* consent gate */
+  .gate{position:absolute; inset:0; background:var(--paper-raised); z-index:40; overflow-y:auto; padding:28px 22px;}
+  .gate.hide{display:none;}
+  .gate h2{font-size:23px; margin-bottom:4px;}
+  .gate .lede{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); margin:0 0 20px;}
+  .gate .blk{margin-bottom:16px;}
+  .gate .blk h4{font-family:var(--display); font-size:15px; font-weight:600; margin:0 0 5px;}
+  .gate .blk p{margin:0; font-size:14.5px; line-height:1.5; color:var(--ink-soft);}
+  .gate .ack{
+    display:flex; gap:11px; align-items:flex-start; font-size:14px; color:var(--ink);
+    background:var(--paper); border:1px solid var(--line); border-radius:4px;
+    padding:14px; line-height:1.5; margin-top:18px;
+  }
+  .gate .ack input{accent-color:var(--teal); margin-top:3px; width:16px; height:16px; flex:none;}
+
+  /* toast */
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px);
+    background:var(--ink); color:#fff; padding:14px 20px; border-radius:4px;
+    font-size:14.5px; box-shadow:0 18px 40px -20px rgba(22,35,58,0.7);
+    opacity:0; pointer-events:none; transition:.22s; z-index:99;
+    max-width:min(460px,90vw); text-align:center; line-height:1.5;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0);}
+  .toast .tag{margin-right:9px;}
+
+  /* simulated notification */
+  .fakenotif{
+    position:absolute; left:12px; right:12px; top:12px;
+    background:rgba(255,255,255,0.97); border:1px solid var(--line); border-radius:8px;
+    padding:13px 15px; box-shadow:0 14px 34px -18px rgba(22,35,58,0.5); z-index:60;
+    transform:translateY(-150%); transition:transform .3s cubic-bezier(.2,.8,.3,1); backdrop-filter:blur(6px);
+  }
+  .fakenotif.show{transform:translateY(0);}
+  .fakenotif .hdr{
+    display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px;
+    letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;
+  }
+  .fakenotif .msg{font-size:14px; line-height:1.4;}
+
+  .footnote{font-family:var(--mono); font-size:12px; color:var(--ink-soft); text-align:center; margin-top:24px; line-height:1.6;}
+
+  footer{padding:34px 0; border-top:1px solid var(--line); background:var(--paper);}
+  .footer-row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  footer .mono{font-size:12.5px; color:var(--ink-soft);}
+  footer a{color:var(--teal); text-decoration:none; font-family:var(--mono); font-size:12.5px;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
 </style>
 </head>
 <body>
 
-<div class="page">
-  <div class="page-head">
-    <p class="eyebrow">Interactive Demo</p>
-    <h1>See exactly what your patients see</h1>
-    <p>This is a working walkthrough of the Postopify patient app. Enter a surgery date, check off what the patient was prescribed, and watch the schedule build itself. Nothing you type is saved or sent anywhere.</p>
+<header>
+  <div class="wrap header-row">
+    <a href="/" class="logo">
+      <svg class="icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="22" height="22" rx="4" stroke="#16233A" stroke-width="1.8"/>
+        <path d="M8 13.5L11.2 16.7L18 9.5" stroke="#C1592E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      postopify
+    </a>
+    <nav>
+      <a href="/#how">How it works</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/faq">FAQs</a>
+      <a href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice" class="cta">Bring it to my practice</a>
+    </nav>
   </div>
+</header>
 
-  <div class="demo-banner">
-    <span class="pill">Demo</span>
-    <span><strong>Sample data only.</strong> Reminders, Telegram, and calendar buttons are disabled here — they work in the real app.</span>
-  </div>
+<main>
+  <section class="intro">
+    <div class="wrap">
+      <div class="eyebrow">Interactive demo</div>
+      <h1>See exactly what your patients see.</h1>
+      <p class="lede">This is the patient view, running for real. Enter a surgery date, check off what was prescribed, and watch the medication schedule build itself. Nothing you type is saved, sent, or kept.</p>
 
-  <div class="layout">
+      <div class="notice">
+        <span class="tag">Demo</span>
+        <span><b>Sample data only.</b> Reminders, Telegram, and calendar buttons are switched off here — they work in the live app. This is the generic version; a real practice sees their own name, logo, and colors.</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap layout">
+
     <div class="device">
       <div class="device-bar">
-        <span>demo.postopify.com</span>
+        <span>postopify.com/demo</span>
         <span id="clock">9:41</span>
       </div>
       <div class="screen" id="screen">
@@ -209,29 +341,33 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
         <div class="gate" id="gate">
           <h2>Patient Medication Tracker</h2>
           <p class="lede">Post-Op Instructions</p>
-          <div class="blk"><h4>📋 Purpose</h4><p>This app is a <b>medication tracking tool only</b>. It helps you log when you take your prescribed medications after your procedure.</p></div>
-          <div class="blk"><h4>⚡ Not Medical Advice</h4><p>Always follow your surgeon's instructions and your prescription label. Never exceed your prescribed dosage.</p></div>
-          <div class="blk"><h4>🔒 Privacy</h4><p>All information stays <b>on your device only</b>. Nothing is shared with your provider or any third party.</p></div>
-          <div class="note warn">⚠️ <b>Emergency:</b> Call <b>911</b> immediately for severe allergic reactions or life-threatening symptoms.</div>
+          <div class="blk"><h4>Purpose</h4><p>This app is a <b>medication tracking tool only</b>. It helps you log when you take your prescribed medications after your procedure.</p></div>
+          <div class="blk"><h4>Not Medical Advice</h4><p>Always follow your surgeon's instructions and your prescription label. Never exceed your prescribed dosage.</p></div>
+          <div class="blk"><h4>Privacy</h4><p>All information stays <b>on your device only</b>. Nothing is shared with your provider or any third party.</p></div>
+          <div class="note warn"><b>Emergency:</b> Call <b>911</b> immediately for severe allergic reactions or life-threatening symptoms.</div>
           <label class="ack"><input type="checkbox" id="ackBox"><span>I understand this app is a tracking tool only and not a substitute for professional medical advice. I will follow my surgeon's instructions and prescription labels at all times.</span></label>
-          <button class="btn" id="gateBtn" disabled style="opacity:.5">I Understand — Continue to App</button>
+          <button class="btn" id="gateBtn" disabled style="opacity:.45">I Understand — Continue to App</button>
         </div>
 
         <!-- simulated notification -->
         <div class="fakenotif" id="fakenotif">
-          <div class="hdr"><span>🔔</span><span>Postopify · now</span></div>
+          <div class="hdr"><span>Postopify</span><span>&middot;</span><span>now</span></div>
           <div class="msg" id="notifMsg">Time for your next dose.</div>
         </div>
 
         <div class="app">
           <div class="appbar">
             <div class="brand">
-              <div class="logo-dot">🦷</div>
+              <div class="logo-dot">
+                <svg width="16" height="16" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 13.5L11.2 16.7L18 9.5" stroke="#2B5F52" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
               <h2>Post-Op Medication Schedule</h2>
             </div>
             <div class="tools">
-              <button class="chip on" data-demo="Language toggle — the real app is fully bilingual (English / Español).">EN</button>
-              <button class="chip" data-demo="Language toggle — the real app is fully bilingual (English / Español).">ES</button>
+              <button class="chip on" data-demo="Language toggle — the live app is fully bilingual, English and Español.">EN</button>
+              <button class="chip" data-demo="Language toggle — the live app is fully bilingual, English and Español.">ES</button>
             </div>
           </div>
 
@@ -240,9 +376,9 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
             <!-- SURGERY DATE -->
             <div class="section open" id="secDate">
               <div class="section-head" data-toggle>
-                <div class="ico">📅</div>
+                <div class="ico">&#128197;</div>
                 <div class="txt"><h3>Date of Surgery</h3><div class="sub">Enter your surgery date to unlock dose reminders and track your post-op day.</div></div>
-                <div class="caret">▼</div>
+                <div class="caret">&#9660;</div>
               </div>
               <div class="section-body">
                 <label class="fld" for="surgDate">Surgery date</label>
@@ -252,16 +388,16 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
                 <label class="fld">Select day to log</label>
                 <div class="daytabs" id="dayTabs"></div>
 
-                <div class="note" id="dateNote">Pick a date above — try today's date, or a date two or three days ago to see the app mid-recovery.</div>
+                <div class="note" id="dateNote">Start here. Try today's date, or a date two or three days ago to see the app mid-recovery.</div>
               </div>
             </div>
 
             <!-- PATIENT INFO -->
             <div class="section" id="secPatient">
               <div class="section-head" data-toggle>
-                <div class="ico">👤</div>
+                <div class="ico">&#128100;</div>
                 <div class="txt"><h3>Patient Information</h3><div class="sub">Fill in your details to identify this schedule</div></div>
-                <div class="caret">▼</div>
+                <div class="caret">&#9660;</div>
               </div>
               <div class="section-body">
                 <div class="row2">
@@ -280,9 +416,9 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
             <!-- PRESCRIBED CHECKLIST -->
             <div class="section open" id="secChecklist">
               <div class="section-head" data-toggle>
-                <div class="ico">📋</div>
+                <div class="ico">&#128203;</div>
                 <div class="txt"><h3>What is the patient prescribed?</h3><div class="sub">Check everything that applies — those sections move to the top; the rest stay out of the way below</div></div>
-                <div class="caret">▼</div>
+                <div class="caret">&#9660;</div>
               </div>
               <div class="section-body">
                 <div class="checklist" id="checklist"></div>
@@ -292,14 +428,13 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
 
             <!-- MEDICATION CARDS INJECTED HERE -->
             <div id="medZone"></div>
-            <div id="medAnchor"></div>
 
             <!-- REMINDERS -->
             <div class="section" id="secReminders">
               <div class="section-head" data-toggle>
-                <div class="ico">⏰</div>
+                <div class="ico">&#9200;</div>
                 <div class="txt"><h3>Dose Reminders</h3><div class="sub">Set alarms so you never miss a dose — resets each day</div></div>
-                <div class="caret">▼</div>
+                <div class="caret">&#9660;</div>
               </div>
               <div class="section-body">
                 <div id="reminderList"><p class="empty-hint">Turn on a medication above and its reminder row will appear here.</p></div>
@@ -310,27 +445,27 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
                 </select>
                 <label class="fld" for="ring">Ring duration</label>
                 <select id="ring"><option>5 seconds</option><option>10 seconds</option><option>Until dismissed</option></select>
-                <button class="btn navy" id="scheduleBtn">✓ Schedule Today's Reminders</button>
-                <div class="note">🔔 Reminders fire today only — open the app each morning to reschedule. Tap a notification to open the app and log your dose.</div>
-                <button class="btn ghost" data-demo="In the real app this connects Telegram for lock-screen reminders that fire even when the browser is closed.">📱 Connect Telegram Reminders</button>
+                <button class="btn" id="scheduleBtn">Schedule Today's Reminders</button>
+                <div class="note">Reminders fire today only — open the app each morning to reschedule. Tap a notification to open the app and log your dose.</div>
+                <button class="btn ghost" data-demo="In the live app this connects Telegram for lock-screen reminders that fire even when the browser is closed.">Connect Telegram Reminders</button>
               </div>
             </div>
 
             <!-- APPOINTMENT -->
             <div class="section" id="secAppt">
               <div class="section-head" data-toggle>
-                <div class="ico">🗓️</div>
+                <div class="ico">&#128198;</div>
                 <div class="txt"><h3>Post-Op Appointment</h3><div class="sub">Adds just the date and time to your calendar — no names or details included</div></div>
-                <div class="caret">▼</div>
+                <div class="caret">&#9660;</div>
               </div>
               <div class="section-body">
                 <div class="row2">
                   <div><label class="fld" for="apptDate">Date</label><input type="date" id="apptDate"></div>
                   <div><label class="fld" for="apptTime">Time</label><input type="time" id="apptTime" value="10:00"></div>
                 </div>
-                <div style="display:flex;gap:10px">
-                  <button class="btn ghost half" data-demo="Adds a bare date/time entry to Google Calendar — deliberately zero PHI, no title or practice name.">📅 Google Calendar</button>
-                  <button class="btn ghost half" data-demo="Downloads a plain .ics file — deliberately zero PHI, no title or practice name.">📅 Apple / Outlook</button>
+                <div style="display:flex; gap:12px;">
+                  <button class="btn ghost half" data-demo="Adds a bare date and time to Google Calendar — deliberately zero PHI, no title or practice name.">Google Calendar</button>
+                  <button class="btn ghost half" data-demo="Downloads a plain .ics file — deliberately zero PHI, no title or practice name.">Apple / Outlook</button>
                 </div>
                 <div class="note">Privacy by design: the calendar entry carries no patient name, procedure, or practice details. The patient adds their own title if they want one.</div>
               </div>
@@ -339,23 +474,23 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
             <!-- IMPORTANT REMINDERS -->
             <div class="section" id="secWarn">
               <div class="section-head" data-toggle>
-                <div class="ico">⚠️</div>
+                <div class="ico">&#9888;</div>
                 <div class="txt"><h3>Important Reminders</h3><div class="sub">Always visible at the bottom of the patient's app</div></div>
-                <div class="caret">▼</div>
+                <div class="caret">&#9660;</div>
               </div>
               <div class="section-body">
-                <div class="note warn">🚫 Do <b>NOT</b> take ibuprofen on an empty stomach — always eat first.</div>
-                <div class="note warn">🚫 Do <b>NOT</b> combine pain medication with alcohol, sleep aids, or other sedatives.</div>
-                <div class="note warn">🚗 Do <b>NOT</b> drive while taking opioid/narcotic pain medication.</div>
-                <div class="note warn">💊 Take your antibiotic at the same time each day and <b>FINISH</b> the full course.</div>
-                <div class="note warn">📞 Call our office if pain is uncontrolled, you have a fever &gt;101°F, or signs of infection.</div>
-                <div class="note warn">🚨 <b>Emergency:</b> Call 911 or go to the nearest ER for severe allergic reactions.</div>
+                <div class="note warn">Do <b>NOT</b> take ibuprofen on an empty stomach — always eat first.</div>
+                <div class="note warn">Do <b>NOT</b> combine pain medication with alcohol, sleep aids, or other sedatives.</div>
+                <div class="note warn">Do <b>NOT</b> drive while taking opioid/narcotic pain medication.</div>
+                <div class="note warn">Take your antibiotic at the same time each day and <b>FINISH</b> the full course.</div>
+                <div class="note warn">Call our office if pain is uncontrolled, you have a fever above 101&deg;F, or signs of infection.</div>
+                <div class="note warn"><b>Emergency:</b> Call 911 or go to the nearest ER for severe allergic reactions.</div>
               </div>
             </div>
 
-            <div style="display:flex;gap:10px">
-              <button class="btn ghost half" data-demo="Prints a one-page patient handout with a personalized QR code back into the app.">🖶 Print / Save PDF</button>
-              <button class="btn ghost half" id="startOver">↻ Start Over</button>
+            <div style="display:flex; gap:12px;">
+              <button class="btn ghost half" data-demo="Prints a one-page patient handout with a personalized QR code back into the app.">Print / Save PDF</button>
+              <button class="btn ghost half" id="startOver">Start Over</button>
             </div>
 
             <p class="footnote">Demo build — no data is saved, transmitted, or retained.</p>
@@ -367,20 +502,28 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
 
     <!-- side rail -->
     <aside class="rail">
-      <h3>Try this</h3>
-      <p>Takes about a minute. Everything below is live in the demo.</p>
+      <div class="eyebrow">Try this</div>
+      <h2>A one-minute tour.</h2>
+      <p>Everything below is live in the demo — click along.</p>
       <ol>
         <li>Accept the disclaimer to enter the app.</li>
-        <li>Set a <b>surgery date</b> — pick two days ago and watch the post-op day tabs jump to Day 2.</li>
-        <li>Check <b>Anti-Inflammatory</b> and <b>Antibiotic</b> in the prescribed list — the cards reorder to the top.</li>
-        <li>Set a <b>first dose time</b> on a card. The full day's schedule builds instantly.</li>
-        <li>Change the antibiotic to <b>3x per day</b> — doses respace and never land after 9:30 PM.</li>
-        <li>Open <b>Dose Reminders</b> and hit schedule to see a sample notification.</li>
+        <li>Set a <b>surgery date</b> — pick two days ago and watch the tabs jump to Post-Op Day 2.</li>
+        <li>Check <b>Anti-Inflammatory</b> and <b>Antibiotic</b> — those cards reorder to the top.</li>
+        <li>Set a <b>first dose time</b>. The whole day's schedule builds instantly.</li>
+        <li>Switch the antibiotic to <b>3x per day</b> — doses respace and never land after 9:30 PM.</li>
+        <li>Open <b>Dose Reminders</b> and schedule them to see a sample alert.</li>
       </ol>
       <button class="rail-reset" id="railReset">Reset the demo</button>
     </aside>
   </div>
-</div>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <span class="mono">&copy; 2026 Postopify</span>
+    <a href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice">Bring Postopify to your practice &rarr;</a>
+  </div>
+</footer>
 
 <div class="toast" id="toast"></div>
 
@@ -392,39 +535,39 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
   var state = { surgery:null, selectedDay:0, meds:{} };
 
   var MEDS = [
-    { id:'ibuprofen', key:'Anti-Inflammatory', icon:'🡲', title:'Anti-Inflammatory',
+    { id:'ibuprofen', key:'Anti-Inflammatory', icon:'▣', title:'Anti-Inflammatory',
       sub:'Ibuprofen 600 mg — Take with food — Every 6 hours, max 4 doses/day',
       ask:'Is the patient taking Ibuprofen?',
       freq:[{v:6,label:'Every 6 hours (4 doses/day)'},{v:8,label:'Every 8 hours (3 doses/day)'}],
       note:'Take with food. Do not exceed the doses on your prescription label.' },
 
-    { id:'pain', key:'Pain Medication', icon:'🔴', title:'Pain Medication',
+    { id:'pain', key:'Pain Medication', icon:'◉', title:'Pain Medication',
       sub:'Take ONLY as needed — Do NOT drive',
       ask:'Is the patient taking pain medication?',
       select:{ label:'Your prescribed medication', options:['— Select medication —','Hydrocodone 5/325 mg','Oxycodone 5 mg','Oxycodone 5/325 mg','Tramadol 50 mg'] },
       freq:[{v:6,label:'Every 6 hours as needed'}],
-      warn:'⚠️ Do <b>NOT</b> drink alcohol or drive. Follow dosing on your prescription label.' },
+      warn:'Do <b>NOT</b> drink alcohol or drive. Follow dosing on your prescription label.' },
 
-    { id:'antibiotic', key:'Antibiotic', icon:'🟢', title:'Antibiotic',
+    { id:'antibiotic', key:'Antibiotic', icon:'●', title:'Antibiotic',
       sub:'Complete the FULL course — even if feeling better',
       ask:'Is the patient taking an antibiotic?',
       select:{ label:'Your prescribed antibiotic', options:['— Select antibiotic —','Amoxicillin','Doxycycline','Azithromycin','Clindamycin','Cephalexin','Cefuroxime','Levofloxacin'] },
       perDay:[1,2,3,4],
-      note:'✅ Finish the full course. Take at the same time each day. Check your label for food instructions.',
+      note:'Finish the full course. Take at the same time each day. Check your label for food instructions.',
       spacing:'Doses are spaced during the day — never after 9:30 PM.' },
 
-    { id:'tylenol', key:'Tylenol', icon:'💊', title:'Tylenol',
+    { id:'tylenol', key:'Tylenol', icon:'○', title:'Tylenol',
       sub:'Acetaminophen — Can be taken along with your other pain medications',
       ask:'Is the patient taking Tylenol?',
       freq:[{v:6,label:'Every 6 hours (4 doses/day)'},{v:4,label:'Every 4 hours (6 doses/day)'}] },
 
-    { id:'steroid', key:'Steroid', icon:'💉', title:'Steroid (if prescribed)',
+    { id:'steroid', key:'Steroid', icon:'▲', title:'Steroid (if prescribed)',
       sub:'Reduces swelling — only if your surgeon prescribed one',
       ask:'Was a steroid prescribed?',
       select:{ label:'Which was prescribed?', options:['— Select —','Medrol Dose Pack','Dexamethasone'] },
-      warn:'⚠️ Do <b>NOT</b> stop a steroid taper early or skip days — stopping abruptly can be unsafe. Call our office with questions about your dose.' },
+      warn:'Do <b>NOT</b> stop a steroid taper early or skip days — stopping abruptly can be unsafe. Call our office with questions about your dose.' },
 
-    { id:'journavx', key:'Journavx', icon:'💉', title:'Journavx',
+    { id:'journavx', key:'Journavx', icon:'◆', title:'Journavx',
       sub:'Can be taken along with your other pain medications',
       ask:'Was Journavx prescribed?',
       freq:[{v:12,label:'Every 12 hours'}],
@@ -448,12 +591,12 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
   function daysBetween(a,b){ return Math.round((midnight(b)-midnight(a))/86400000); }
 
   var toastTimer;
-  function toast(msg,tag){
+  function toast(msg){
     var t=$('#toast');
-    t.innerHTML = (tag===false?'':'<span class="pill">Demo</span>')+msg;
+    t.innerHTML='<span class="tag">Demo</span>'+msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer=setTimeout(function(){ t.classList.remove('show'); },3600);
+    toastTimer=setTimeout(function(){ t.classList.remove('show'); },3800);
   }
 
   var notifTimer;
@@ -462,21 +605,21 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
     var n=$('#fakenotif');
     n.classList.add('show');
     clearTimeout(notifTimer);
-    notifTimer=setTimeout(function(){ n.classList.remove('show'); },4200);
+    notifTimer=setTimeout(function(){ n.classList.remove('show'); },4400);
   }
 
   /* ============ consent gate ============ */
   $('#ackBox').addEventListener('change',function(){
     var b=$('#gateBtn');
     b.disabled=!this.checked;
-    b.style.opacity=this.checked?'1':'.5';
+    b.style.opacity=this.checked?'1':'.45';
   });
   $('#gateBtn').addEventListener('click',function(){
     $('#gate').classList.add('hide');
     toast('You are in the patient view. Start with the surgery date.');
   });
 
-  /* ============ collapsible sections ============ */
+  /* ============ delegated clicks: section toggles + demo-only buttons ============ */
   document.addEventListener('click',function(e){
     var head=e.target.closest('[data-toggle]');
     if(head){ head.parentNode.classList.toggle('open'); }
@@ -507,7 +650,7 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
     state.surgery=new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10));
     var diff=daysBetween(state.surgery,new Date());
     var read=$('#dayReadout');
-    if(diff<0){ read.textContent='Surgery is in '+Math.abs(diff)+' day'+(Math.abs(diff)===1?'':'s')+' — the app will unlock the day-of tab that morning.'; state.selectedDay=0; }
+    if(diff<0){ read.textContent='Surgery is in '+Math.abs(diff)+' day'+(Math.abs(diff)===1?'':'s')+' — the day-of tab unlocks that morning.'; state.selectedDay=0; }
     else if(diff>5){ read.textContent='That is '+diff+' days ago — past the tracked window. Reminders stay available.'; state.selectedDay=5; }
     else { read.textContent='Today is '+DAY_LABELS[diff]+' — tab auto-selected.'; state.selectedDay=diff; }
     $('#dateNote').innerHTML='Post-op day math is DST-safe and recalculates every time the patient opens the app.';
@@ -554,7 +697,6 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
 
     var body=el('div','section-body');
 
-    // on/off switch
     var sw=el('div','switch-row');
     sw.innerHTML='<span>'+m.ask+'</span><label class="sw"><input type="checkbox" id="sw-'+m.id+
       '"><span class="track"></span></label>';
@@ -565,7 +707,7 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
     if(m.select){
       var lab=el('label','fld',m.select.label); lab.setAttribute('for','sel-'+m.id);
       var sel=el('select'); sel.id='sel-'+m.id;
-      m.select.options.forEach(function(o){ var op=el('option',null,o); sel.appendChild(op); });
+      m.select.options.forEach(function(o){ sel.appendChild(el('option',null,o)); });
       inner.appendChild(lab); inner.appendChild(sel);
       sel.addEventListener('change',function(){ render(m.id); });
     }
@@ -574,7 +716,7 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
       var pl=el('label','fld','How many doses per day?'); pl.setAttribute('for','per-'+m.id);
       var ps=el('select'); ps.id='per-'+m.id;
       m.perDay.forEach(function(n){ ps.appendChild(el('option',null,n+'x per day')); });
-      ps.value='2x per day';
+      ps.selectedIndex=1;
       inner.appendChild(pl); inner.appendChild(ps);
       ps.addEventListener('change',function(){ render(m.id); });
       inner.appendChild(el('div','note',m.spacing));
@@ -598,15 +740,13 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
     inner.appendChild(zone);
     ti.addEventListener('change',function(){ render(m.id); });
 
-    var lock=el('div','lock-msg','🔒 Enter a surgery date above to unlock dose scheduling.');
-    inner.appendChild(lock);
+    inner.appendChild(el('div','lock-msg','Enter a surgery date above to unlock dose scheduling.'));
 
     if(m.note) inner.appendChild(el('div','note',m.note));
     if(m.warn) inner.appendChild(el('div','note warn',m.warn));
 
     body.appendChild(inner);
     sec.appendChild(body);
-
     $('#medZone').appendChild(sec);
 
     $('#sw-'+m.id).addEventListener('change',function(){
@@ -642,17 +782,16 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
       }
       list=[{min:start,label:'One tablet, once daily — take with food'}];
     } else {
-      var hrs = 6;
+      var hrs=6;
       var sel=$('#frq-'+id);
       if(sel) hrs=parseInt(sel.value,10);
       else if(m.freq) hrs=m.freq[0].v;
-      var count=Math.floor(24/hrs);
-      list=scheduleEveryN(start,hrs,count);
+      list=scheduleEveryN(start,hrs,Math.floor(24/hrs));
     }
 
     var html='<h4>Today’s schedule</h4>';
     list.forEach(function(d,i){
-      var next = d.min>=1440 ? ' <span style="color:var(--iodine);font-size:11px">+1 day</span>' : '';
+      var next = d.min>=1440 ? ' <span style="color:var(--iodine)">+1 day</span>' : '';
       html+='<div class="dose" data-med="'+id+'" data-i="'+i+'">'+
             '<span class="t">'+fmtTime(d.min)+next+'</span>'+
             '<span class="lab">'+d.label+'</span>'+
@@ -663,7 +802,7 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
     box.querySelectorAll('.dose').forEach(function(row){
       row.querySelector('.tick').addEventListener('click',function(){
         row.classList.toggle('taken');
-        this.textContent=row.classList.contains('taken')?'✓ Taken':'Mark taken';
+        this.textContent=row.classList.contains('taken')?'Taken':'Mark taken';
       });
     });
     renderReminders();
@@ -696,9 +835,7 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
   function reorder(){
     var zone=$('#medZone');
     var on=[],off=[];
-    CANON.forEach(function(id){
-      (state.meds[id]?on:off).push($('#med-'+id));
-    });
+    CANON.forEach(function(id){ (state.meds[id]?on:off).push($('#med-'+id)); });
     on.concat(off).forEach(function(node){ zone.appendChild(node); });
   }
 
@@ -710,10 +847,11 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
       if(!state.meds[id]) return;
       var m=null;
       for(var i=0;i<MEDS.length;i++){ if(MEDS[i].id===id) m=MEDS[i]; }
-      var t=$('#tm-'+id) ? $('#tm-'+id).value : '';
-      var first=parseTime(t);
-      rows.push('<div class="reminder-row"><span>'+m.icon+' '+m.title+'</span><span class="t" style="font-family:var(--mono);color:'+
-        (first===null?'var(--muted)':'var(--navy)')+'">'+(first===null?'no time set':'first at '+fmtTime(first))+'</span></div>');
+      var node=$('#tm-'+id);
+      var first=node?parseTime(node.value):null;
+      rows.push('<div class="reminder-row"><span>'+m.title+'</span>'+
+        '<span class="mono" style="font-size:12.5px;color:'+(first===null?'var(--ink-soft)':'var(--teal)')+'">'+
+        (first===null?'no time set':'first at '+fmtTime(first))+'</span></div>');
     });
     list.innerHTML = rows.length ? rows.join('') :
       '<p class="empty-hint">Turn on a medication above and its reminder row will appear here.</p>';
@@ -738,15 +876,14 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
     MEDS.forEach(function(m){
       $('#inner-'+m.id).style.display='none';
       $('#med-'+m.id).classList.remove('open');
-      var box=$('#doses-'+m.id);
-      box.innerHTML='<h4>Today’s schedule</h4><p class="empty-hint">Set a first dose time to build the schedule.</p>';
+      $('#doses-'+m.id).innerHTML='<h4>Today’s schedule</h4><p class="empty-hint">Set a first dose time to build the schedule.</p>';
       var s=$('#sel-'+m.id); if(s) s.selectedIndex=0;
       var p=$('#per-'+m.id); if(p) p.selectedIndex=1;
       var f=$('#frq-'+m.id); if(f) f.selectedIndex=0;
     });
     $('#dayReadout').textContent='';
-    $('#dateNote').innerHTML='Pick a date above — try today’s date, or a date two or three days ago to see the app mid-recovery.';
-    $('#gateBtn').disabled=true; $('#gateBtn').style.opacity='.5';
+    $('#dateNote').innerHTML='Start here. Try today’s date, or a date two or three days ago to see the app mid-recovery.';
+    $('#gateBtn').disabled=true; $('#gateBtn').style.opacity='.45';
     $('#gate').classList.remove('hide');
     $('#screen').scrollTop=0;
     syncChecklist(); reorder(); buildDayTabs(); renderReminders(); updateLocks();
@@ -754,7 +891,7 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
   $('#startOver').addEventListener('click',resetAll);
   $('#railReset').addEventListener('click',resetAll);
 
-  /* ============ live clock in device bar ============ */
+  /* ============ device clock ============ */
   function tickClock(){
     var d=new Date(), h=d.getHours()%12; if(h===0) h=12;
     $('#clock').textContent=h+':'+pad(d.getMinutes());
@@ -770,5 +907,6 @@ input:focus,select:focus{outline:2px solid var(--teal);outline-offset:-1px;borde
   setInterval(tickClock,30000);
 })();
 </script>
+
 </body>
 </html>
