@@ -158,12 +158,34 @@
     background:var(--paper-raised); border:1px solid var(--line); border-radius:6px;
     padding:26px 24px; display:flex; flex-direction:column;
   }
-  .price-card.highlight{border-color:var(--teal); box-shadow:0 18px 40px -28px rgba(43,95,82,0.45);}
+  .price-card.highlight{border-color:var(--teal); box-shadow:0 18px 40px -28px rgba(43,95,82,0.45); position:relative;}
+  .price-card.highlight::before{
+    content:"Save 17%"; position:absolute; top:-12px; right:20px;
+    background:var(--iodine); color:#fff; font-family:var(--mono); font-size:11px;
+    letter-spacing:0.04em; text-transform:uppercase; padding:4px 10px; border-radius:999px;
+  }
   .price-card .pc-label{font-family:var(--mono); font-size:12px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px;}
   .price-card .pc-amount{font-family:var(--display); font-weight:700; font-size:36px; line-height:1; margin-bottom:4px;}
   .price-card .pc-amount span{font-family:var(--mono); font-weight:400; font-size:14px; color:var(--ink-soft);}
   .price-card .pc-note{font-family:var(--mono); font-size:12.5px; color:var(--teal-deep); margin-bottom:14px; min-height:16px;}
-  .price-card p.pc-desc{color:var(--ink-soft); font-size:14.5px; margin:0; flex:1;}
+  .price-card p.pc-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 16px;}
+  .price-card .pc-features{list-style:none; margin:0 0 20px; padding:0; flex:1;}
+  .price-card .pc-features li{
+    display:flex; gap:9px; align-items:flex-start; font-size:13.5px; color:var(--ink);
+    padding:7px 0; border-bottom:1px solid var(--paper); line-height:1.4;
+  }
+  .price-card .pc-features li:last-child{border-bottom:none;}
+  .price-card .pc-features li::before{
+    content:"✓"; flex:none; color:var(--teal-deep); font-family:var(--mono); font-weight:500;
+  }
+  .price-card .pc-cta{
+    margin-top:auto; text-align:center; font-family:var(--mono); font-size:13.5px;
+    text-decoration:none; padding:11px 0; border-radius:3px; font-weight:500;
+  }
+  .price-card .pc-cta.solid{background:var(--teal); color:#fff;}
+  .price-card .pc-cta.solid:hover{background:var(--teal-deep);}
+  .price-card .pc-cta.outline{border:1px solid var(--ink); color:var(--ink);}
+  .price-card .pc-cta.outline:hover{border-color:var(--teal); color:var(--teal);}
   .pricing-setup{
     display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
     margin-top:20px; padding:18px 22px; border:1px dashed var(--line); border-radius:6px;
@@ -314,7 +336,7 @@
       <a href="#pricing">Pricing</a>
       <a href="#practices">Practices</a>
       <a href="/faq">FAQs</a>
-      <a href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice" class="cta">Bring it to my practice</a>
+      <a href="mailto:postopify@gmail.com?subject=Postopify%20for%20my%20practice" class="cta">Bring it to my practice</a>
     </nav>
   </div>
 </header>
@@ -329,7 +351,7 @@
         <h1>Post-op care that survives the ride home.</h1>
         <p class="lede">Postopify turns your practice's discharge instructions into a QR code. Patients scan it once and see their procedure and medication schedule on any phone — nothing to download, nothing to lose.</p>
         <div class="hero-ctas">
-          <a class="btn btn-primary" href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice">Bring Postopify to your practice</a>
+          <a class="btn btn-primary" href="mailto:postopify@gmail.com?subject=Postopify%20for%20my%20practice">Bring Postopify to your practice</a>
           <a class="btn btn-ghost" href="/demo">Try the live demo</a>
         </div>
       </div>
@@ -516,24 +538,45 @@
           <div class="pc-amount">$35 <span>/ month</span></div>
           <div class="pc-note">&nbsp;</div>
           <p class="pc-desc">Billed monthly. Cancel anytime.</p>
+          <ul class="pc-features">
+            <li>Unlimited patients &amp; procedures</li>
+            <li>Bilingual patient app (English &amp; Spanish)</li>
+            <li>Automated dose reminders</li>
+            <li>Branded subdomain for your practice</li>
+          </ul>
+          <a class="pc-cta outline" href="https://onboard.postopify.com">Get started</a>
         </div>
         <div class="price-card highlight">
           <div class="pc-label">Annual</div>
           <div class="pc-amount">$350 <span>/ year</span></div>
           <div class="pc-note">Save about 2 months</div>
           <p class="pc-desc">Billed once a year. Works out to roughly $29/month.</p>
+          <ul class="pc-features">
+            <li>Everything in Monthly</li>
+            <li>Two months free vs. paying monthly</li>
+            <li>Priority support during setup</li>
+            <li>Locked-in annual rate</li>
+          </ul>
+          <a class="pc-cta solid" href="https://onboard.postopify.com">Get started</a>
         </div>
         <div class="price-card">
           <div class="pc-label">Setup</div>
           <div class="pc-amount">$50 <span>one-time</span></div>
           <div class="pc-note">&nbsp;</div>
           <p class="pc-desc">Branding, Drive folder setup, and subdomain provisioning for your practice.</p>
+          <ul class="pc-features">
+            <li>Subdomain provisioning</li>
+            <li>Drive template folder setup</li>
+            <li>Logo &amp; color branding</li>
+            <li>Charged once, at signup</li>
+          </ul>
+          <a class="pc-cta outline" href="https://onboard.postopify.com">Get started</a>
         </div>
       </div>
 
       <div class="pricing-setup">
-        <div class="ps-text">Every new practice starts with a short call so we can set up your branding and folder correctly the first time. <b>No self-serve checkout — reach out and we'll walk you through it.</b></div>
-        <a class="btn btn-primary" href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20pricing%20—%20getting%20started">Get started</a>
+        <div class="ps-text">Submit your practice's details below — we'll review, provision your branded subdomain, and send you a secure payment link to activate your subscription. <b>Most practices are live within a day or two.</b></div>
+        <a class="btn btn-primary" href="https://onboard.postopify.com">Start onboarding</a>
       </div>
     </div>
   </section>
@@ -570,7 +613,7 @@
     <div class="wrap">
       <h2>Have a practice you'd like on Postopify?</h2>
       <p>Setup takes an afternoon: a Drive folder for your instructions, a subdomain, and your clinic's branding. Nothing for your patients to download.</p>
-      <a class="btn btn-primary" href="mailto:jacob.carrolldmd@gmail.com?subject=Postopify%20for%20my%20practice">Request access</a>
+      <a class="btn btn-primary" href="mailto:postopify@gmail.com?subject=Postopify%20for%20my%20practice">Request access</a>
     </div>
   </section>
 
