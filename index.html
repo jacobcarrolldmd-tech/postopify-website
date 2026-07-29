@@ -186,6 +186,47 @@
   .price-card .pc-cta.solid:hover{background:var(--teal-deep);}
   .price-card .pc-cta.outline{border:1px solid var(--ink); color:var(--ink);}
   .price-card .pc-cta.outline:hover{border-color:var(--teal); color:var(--teal);}
+
+  /* ---------- inquiry modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(22,35,58,0.55);
+    display:none; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--paper-raised); border-radius:8px; max-width:440px; width:100%;
+    padding:32px 30px; position:relative; box-shadow:0 30px 70px -30px rgba(22,35,58,0.5);
+  }
+  .modal-close{
+    position:absolute; top:16px; right:16px; background:none; border:none;
+    font-family:var(--mono); font-size:20px; color:var(--ink-soft); cursor:pointer; line-height:1;
+    padding:4px;
+  }
+  .modal-close:hover{color:var(--ink);}
+  .modal-box h3{font-size:22px; margin-bottom:8px;}
+  .modal-box p.modal-sub{color:var(--ink-soft); font-size:14.5px; margin-bottom:22px;}
+  .modal-field{margin-bottom:16px;}
+  .modal-field label{
+    display:block; font-family:var(--mono); font-size:12px; letter-spacing:0.03em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;
+  }
+  .modal-field input{
+    width:100%; font-family:var(--body); font-size:15px; padding:10px 12px;
+    border:1px solid var(--line); border-radius:4px; background:var(--paper);
+    color:var(--ink);
+  }
+  .modal-field input:focus{outline:2px solid var(--iodine); outline-offset:1px; border-color:var(--teal);}
+  .modal-submit{
+    width:100%; font-family:var(--mono); font-size:14px; background:var(--teal); color:#fff;
+    border:none; border-radius:4px; padding:13px 0; cursor:pointer; margin-top:6px;
+  }
+  .modal-submit:hover{background:var(--teal-deep);}
+  .modal-submit:disabled{opacity:0.6; cursor:default;}
+  .modal-error{color:var(--iodine); font-size:13.5px; margin-top:10px; display:none;}
+  .modal-success{display:none; text-align:center; padding:12px 0;}
+  .modal-success h3{margin-bottom:10px;}
+  .modal-success p{color:var(--ink-soft); font-size:14.5px;}
   .pricing-setup{
     display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
     margin-top:20px; padding:18px 22px; border:1px dashed var(--line); border-radius:6px;
@@ -544,7 +585,7 @@
             <li>Automated dose reminders</li>
             <li>Branded subdomain for your practice</li>
           </ul>
-          <a class="pc-cta outline" href="https://onboard.postopify.com">Get started</a>
+          <a class="pc-cta outline" href="#" onclick="openInquiryModal(); return false;">Get started</a>
         </div>
         <div class="price-card highlight">
           <div class="pc-label">Annual</div>
@@ -557,7 +598,7 @@
             <li>Priority support during setup</li>
             <li>Locked-in annual rate</li>
           </ul>
-          <a class="pc-cta solid" href="https://onboard.postopify.com">Get started</a>
+          <a class="pc-cta solid" href="#" onclick="openInquiryModal(); return false;">Get started</a>
         </div>
         <div class="price-card">
           <div class="pc-label">Setup</div>
@@ -570,13 +611,13 @@
             <li>Logo &amp; color branding</li>
             <li>Charged once, at signup</li>
           </ul>
-          <a class="pc-cta outline" href="https://onboard.postopify.com">Get started</a>
+          <a class="pc-cta outline" href="#" onclick="openInquiryModal(); return false;">Get started</a>
         </div>
       </div>
 
       <div class="pricing-setup">
-        <div class="ps-text">Submit your practice's details below — we'll review, provision your branded subdomain, and send you a secure payment link to activate your subscription. <b>Most practices are live within a day or two.</b></div>
-        <a class="btn btn-primary" href="https://onboard.postopify.com">Start onboarding</a>
+        <div class="ps-text">Submit your practice's details below — we'll review, provision your branded subdomain, and send you a secure payment link to activate your subscription. Most practices are live within a day or two.</div>
+        <a class="btn btn-primary" href="#" onclick="openInquiryModal(); return false;">Start onboarding</a>
       </div>
     </div>
   </section>
@@ -638,6 +679,98 @@
       box.style.transition = 'opacity .3s ease, background .3s ease, border-color .3s ease';
     });
   })();
+</script>
+
+<!-- INQUIRY MODAL -->
+<div class="modal-overlay" id="inquiryOverlay" onclick="if(event.target===this) closeInquiryModal();">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="inquiryTitle">
+    <button class="modal-close" onclick="closeInquiryModal()" aria-label="Close">&times;</button>
+
+    <div id="inquiryFormWrap">
+      <h3 id="inquiryTitle">Tell us about your practice</h3>
+      <p class="modal-sub">We'll review your details and follow up with a link to finish setup — usually within a day.</p>
+
+      <form id="inquiryForm" onsubmit="submitInquiry(event)">
+        <div class="modal-field">
+          <label for="inqPractice">Practice name</label>
+          <input type="text" id="inqPractice" required>
+        </div>
+        <div class="modal-field">
+          <label for="inqEmail">Email</label>
+          <input type="email" id="inqEmail" required>
+        </div>
+        <div class="modal-field">
+          <label for="inqPhone">Phone (optional)</label>
+          <input type="tel" id="inqPhone">
+        </div>
+        <button type="submit" class="modal-submit" id="inquirySubmitBtn">Request access</button>
+        <div class="modal-error" id="inquiryError">Something went wrong — please try again, or email postopify@gmail.com directly.</div>
+      </form>
+    </div>
+
+    <div class="modal-success" id="inquirySuccess">
+      <h3>Thanks — we've got it.</h3>
+      <p>We'll follow up at the email you provided with next steps. Most practices hear back within a day or two.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  var INQUIRY_ENDPOINT = 'https://postopify.com/inquire';
+
+  function openInquiryModal(){
+    document.getElementById('inquiryOverlay').classList.add('open');
+    document.getElementById('inquiryFormWrap').style.display = 'block';
+    document.getElementById('inquirySuccess').style.display = 'none';
+    document.getElementById('inquiryError').style.display = 'none';
+  }
+
+  function closeInquiryModal(){
+    document.getElementById('inquiryOverlay').classList.remove('open');
+  }
+
+  function submitInquiry(evt){
+    evt.preventDefault();
+    var btn = document.getElementById('inquirySubmitBtn');
+    var errorBox = document.getElementById('inquiryError');
+    errorBox.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    var payload = {
+      practiceName: document.getElementById('inqPractice').value.trim(),
+      contactEmail: document.getElementById('inqEmail').value.trim(),
+      phone: document.getElementById('inqPhone').value.trim()
+    };
+
+    fetch(INQUIRY_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        btn.disabled = false;
+        btn.textContent = 'Request access';
+        if(data.status === 'ok'){
+          document.getElementById('inquiryFormWrap').style.display = 'none';
+          document.getElementById('inquirySuccess').style.display = 'block';
+          document.getElementById('inquiryForm').reset();
+        } else {
+          errorBox.textContent = data.message || 'Something went wrong — please try again, or email postopify@gmail.com directly.';
+          errorBox.style.display = 'block';
+        }
+      })
+      .catch(function(){
+        btn.disabled = false;
+        btn.textContent = 'Request access';
+        errorBox.style.display = 'block';
+      });
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeInquiryModal();
+  });
 </script>
 
 </body>
