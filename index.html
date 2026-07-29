@@ -692,6 +692,10 @@
 
       <form id="inquiryForm" onsubmit="submitInquiry(event)">
         <div class="modal-field">
+          <label for="inqContactName">Your name</label>
+          <input type="text" id="inqContactName" required>
+        </div>
+        <div class="modal-field">
           <label for="inqPractice">Practice name</label>
           <input type="text" id="inqPractice" required>
         </div>
@@ -739,6 +743,7 @@
 
     var payload = {
       practiceName: document.getElementById('inqPractice').value.trim(),
+      contactName: document.getElementById('inqContactName').value.trim(),
       contactEmail: document.getElementById('inqEmail').value.trim(),
       phone: document.getElementById('inqPhone').value.trim()
     };
