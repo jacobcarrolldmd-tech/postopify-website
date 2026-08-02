@@ -127,9 +127,9 @@
     .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
 </style>
-  <!-- Local QR generation. Vendored into this repo on purpose: the QR code is
-       built on this device so no patient data is ever sent to an outside QR
-       service. Do not swap this for a CDN or a remote QR-image API. -->
+  <!-- Local QR generation. Vendored on purpose: the QR is built on this device,
+       so no patient data is sent to an outside QR service. Do not replace this
+       with a CDN or a remote QR-image API. -->
   <script src="qrcode.min.js"></script>
 </head>
 <body>
@@ -142,6 +142,7 @@
   <div class="config-note" id="appUrlNote">
     Sending to <strong id="appUrlDisplay">—</strong>
     <button type="button" onclick="editAppUrl()">change</button>
+    <span id="savedFlag" style="display:none;margin-left:8px;color:#0a7d3f;font-weight:600;">Saved ✓</span>
   </div>
   <div class="card" id="appUrlCard" style="display:none;">
     <h2>Practice setup (set once per device)</h2>
@@ -161,6 +162,7 @@
     <div class="hint">This is your own wording, printed exactly as typed &mdash; nothing here is written or suggested automatically.</div>
 
     <button class="btn btn-primary" type="button" onclick="saveAppUrl()">Save</button>
+    <div id="saveStatus" class="hint" style="display:none;margin-top:10px;"></div>
   </div>
 
   <div class="card">
@@ -359,12 +361,12 @@
 
 <script>
 // Builds the QR code entirely in this browser and returns a data: URL.
-// This replaces the previous remote QR-image service, which received the full
+// Replaces the previous remote QR-image service, which received the full
 // patient link (including the free-text message) in its request logs.
 function makeQrDataUrl(text) {
   // Encode as UTF-8. The library defaults to a latin1-style encoder, which
-  // corrupts accented characters - so a Spanish message such as
-  // "¡Que se mejore pronto!" would scan back as mojibake.
+  // corrupts accented characters - a Spanish message such as
+  // "¡Que se mejore pronto!" would otherwise scan back as mojibake.
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   var qr = qrcode(0, 'M');   // 0 = auto-size to fit the data
   qr.addData(text);
@@ -397,15 +399,38 @@ function editAppUrl() {
   document.getElementById('appUrl').focus();
 }
 
+// Shows a message inside the practice-setup card. This card previously gave no
+// feedback at all: pressing Save with an empty URL did nothing, and a successful
+// save looked identical to no save.
+function showSaveStatus(msg, isError) {
+  var el = document.getElementById('saveStatus');
+  el.textContent = msg;
+  el.style.color = isError ? '#b3261e' : '#0a7d3f';
+  el.style.display = 'block';
+}
+
 function saveAppUrl() {
   var v = document.getElementById('appUrl').value.trim().replace(/\/+$/, '');
-  if (!v) return;
+  if (!v) {
+    showSaveStatus('Enter this practice\u2019s app URL before saving \u2014 for example https://veos.postopify.com', true);
+    document.getElementById('appUrl').focus();
+    return;
+  }
   localStorage.setItem('kickstart_app_url', v);
   localStorage.setItem('kickstart_practice_name', document.getElementById('practiceName').value.trim());
   localStorage.setItem('kickstart_instructions_api', document.getElementById('instructionsApi').value.trim());
   localStorage.setItem('kickstart_custom_note', document.getElementById('customNote').value.trim());
   refreshAppUrlDisplay();
   document.getElementById('appUrlCard').style.display = 'none';
+  document.getElementById('saveStatus').style.display = 'none';
+
+  // Visible confirmation that the settings actually persisted - the card
+  // closing by itself is ambiguous.
+  var flag = document.getElementById('savedFlag');
+  flag.style.display = 'inline';
+  clearTimeout(window._savedFlagTimer);
+  window._savedFlagTimer = setTimeout(function () { flag.style.display = 'none'; }, 4000);
+
   loadProcedureOptions();
 }
 
@@ -520,7 +545,14 @@ function loadProcedureOptions() {
 
 function generate() {
   var base = getAppUrl();
-  if (!base) { editAppUrl(); return; }
+  if (!base) {
+    // Without this, pressing Generate appeared to do nothing at all.
+    editAppUrl();
+    showSaveStatus('No app URL is set on this device yet. Enter it above and press Save, '
+      + 'then press Generate again.', true);
+    document.getElementById('appUrlCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
 
   var procSelect = document.getElementById('procSelect');
   var proc = (procSelect.style.display !== 'none')
