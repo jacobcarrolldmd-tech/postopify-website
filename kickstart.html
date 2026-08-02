@@ -362,6 +362,10 @@
 // This replaces the previous remote QR-image service, which received the full
 // patient link (including the free-text message) in its request logs.
 function makeQrDataUrl(text) {
+  // Encode as UTF-8. The library defaults to a latin1-style encoder, which
+  // corrupts accented characters - so a Spanish message such as
+  // "¡Que se mejore pronto!" would scan back as mojibake.
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   var qr = qrcode(0, 'M');   // 0 = auto-size to fit the data
   qr.addData(text);
   qr.make();
