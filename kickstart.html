@@ -127,13 +127,9 @@
     .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
 </style>
-  <!-- QR code library, inlined deliberately.
-       kickstart.postopify.com returns the same HTML for every path, so a separate
-       <script src> for this library resolved to HTML and failed with
-       "Unexpected token '<'". Inlining removes the dependency: one file, no extra
-       requests, works on a front-desk tablet with no network.
-       Source: qrcode-generator 2.0.4 (MIT, Kazuhiko Arase), unmodified.
-       The QR is built on this device - no patient data goes to any QR service. -->
+  <!-- QR library inlined: this host returns the same HTML for every path, so a
+       separate <script src> resolved to HTML and failed with "Unexpected token '<'".
+       Source: qrcode-generator 2.0.4 (MIT, Kazuhiko Arase), unmodified. -->
   <script>
 //---------------------------------------------------------------------
 //
@@ -2506,7 +2502,7 @@ var qrcode = function() {
 
     <label for="apptDate">Post-op follow-up appointment (optional)</label>
     <div style="display:flex;gap:8px;">
-      <input type="date" id="apptDate" style="flex:1;">
+      <input type="date" id="apptDate" style="flex:1;" oninput="defaultApptTime()">
       <input type="time" id="apptTime" style="flex:1;">
     </div>
     <div class="hint">If they already have a follow-up scheduled, this pre-fills it so they can add it straight to their calendar. Leave blank to skip.</div>
@@ -2663,15 +2659,15 @@ var qrcode = function() {
 </div>
 
 <script>
+var KICKSTART_BUILD = "v4-2026-08-01";
 // Builds the QR code entirely in this browser and returns a data: URL.
 // Replaces the previous remote QR-image service, which received the full
 // patient link (including the free-text message) in its request logs.
 function makeQrDataUrl(text) {
-  // Encode as UTF-8. The library defaults to a latin1-style encoder, which
-  // corrupts accented characters - a Spanish message such as
-  // "¡Que se mejore pronto!" would otherwise scan back as mojibake.
+  // Encode as UTF-8; the library defaults to a latin1-style encoder, which
+  // would turn a Spanish message into mojibake.
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
-  var qr = qrcode(0, 'M');   // 0 = auto-size to fit the data
+  var qr = qrcode(0, 'M');
   qr.addData(text);
   qr.make();
   return qr.createDataURL(6, 8);
@@ -2702,9 +2698,6 @@ function editAppUrl() {
   document.getElementById('appUrl').focus();
 }
 
-// Shows a message inside the practice-setup card. This card previously gave no
-// feedback at all: pressing Save with an empty URL did nothing, and a successful
-// save looked identical to no save.
 function showSaveStatus(msg, isError) {
   var el = document.getElementById('saveStatus');
   el.textContent = msg;
@@ -2727,8 +2720,6 @@ function saveAppUrl() {
   document.getElementById('appUrlCard').style.display = 'none';
   document.getElementById('saveStatus').style.display = 'none';
 
-  // Visible confirmation that settings actually persisted - the card closing
-  // by itself is ambiguous.
   var flag = document.getElementById('savedFlag');
   flag.style.display = 'inline';
   clearTimeout(window._savedFlagTimer);
@@ -2770,6 +2761,16 @@ function toggleKetorolacTime2() {
     var mm = String(now.getMinutes()).padStart(2, '0');
     document.getElementById('patient2KetorolacTime').value = hh + ':' + mm;
   }
+}
+
+// A blank <input type="time"> starts its AM/PM segment on PM in Chrome, so a
+// 9 o'clock morning follow-up had to be corrected to AM every time. Seeding
+// 9:00 AM when a date is picked makes the common case right by default;
+// staff can still type any other time over it.
+function defaultApptTime() {
+  var date = document.getElementById('apptDate').value;
+  var time = document.getElementById('apptTime');
+  if (date && !time.value) time.value = '09:00';
 }
 
 function todayStr() {
@@ -2849,7 +2850,6 @@ function loadProcedureOptions() {
 function generate() {
   var base = getAppUrl();
   if (!base) {
-    // Without this, pressing Generate appeared to do nothing at all.
     editAppUrl();
     showSaveStatus('No app URL is set on this device yet. Enter it above and press Save, '
       + 'then press Generate again.', true);
