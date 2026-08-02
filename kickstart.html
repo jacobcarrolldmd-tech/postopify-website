@@ -127,6 +127,10 @@
     .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
 </style>
+  <!-- Local QR generation. Vendored into this repo on purpose: the QR code is
+       built on this device so no patient data is ever sent to an outside QR
+       service. Do not swap this for a CDN or a remote QR-image API. -->
+  <script src="qrcode.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -272,7 +276,7 @@
     <div class="hint">This link creates a brand-new profile in the same app instead of overwriting the first patient's &mdash; the parent switches between them using the profile menu inside the app.</div>
   </div>
 
-  <p class="privacy-note">This link only carries the procedure name, surgery date, and (if given) the ketorolac time and appointment — no patient name or other identifying information.</p>
+  <p class="privacy-note">This link carries the procedure name, surgery date, and (if given) the ketorolac time, appointment, and the message you typed above — no patient name is collected. <strong>Do not type a patient’s name or other identifying details into the message field</strong>, as it travels in the link.</p>
 
   <!-- Printable handout: hidden on screen, only rendered by @media print -->
   <div id="printHandout">
@@ -354,6 +358,16 @@
 </div>
 
 <script>
+// Builds the QR code entirely in this browser and returns a data: URL.
+// This replaces the previous remote QR-image service, which received the full
+// patient link (including the free-text message) in its request logs.
+function makeQrDataUrl(text) {
+  var qr = qrcode(0, 'M');   // 0 = auto-size to fit the data
+  qr.addData(text);
+  qr.make();
+  return qr.createDataURL(6, 8);
+}
+
 function getAppUrl() {
   return localStorage.getItem('kickstart_app_url') || '';
 }
@@ -531,7 +545,7 @@ function generate() {
   if (welcomeMsg) params.set('msg', welcomeMsg);
 
   var link = base + '/?' + params.toString();
-  var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(link);
+  var qrSrc = makeQrDataUrl(link);
 
   document.getElementById('linkOutput').value = link;
   document.getElementById('qrImg').src = qrSrc;
@@ -561,7 +575,7 @@ function generate() {
     params2.set('newProfile', '1');
 
     var link2 = base + '/?' + params2.toString();
-    var qrSrc2 = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(link2);
+    var qrSrc2 = makeQrDataUrl(link2);
     document.getElementById('linkOutput2').value = link2;
     document.getElementById('qrImg2').src = qrSrc2;
     resultCard2.classList.add('visible');
