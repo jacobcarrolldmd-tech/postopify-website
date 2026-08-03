@@ -127,9 +127,8 @@
     .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
 </style>
-  <!-- QR library inlined: this host returns the same HTML for every path, so a
-       separate <script src> resolved to HTML and failed with "Unexpected token '<'".
-       Source: qrcode-generator 2.0.4 (MIT, Kazuhiko Arase), unmodified. -->
+  <!-- QR library inlined: this host serves the same HTML for every path, so a
+       separate <script src> resolved to HTML. qrcode-generator 2.0.4, MIT. -->
   <script>
 //---------------------------------------------------------------------
 //
@@ -2577,7 +2576,7 @@ var qrcode = function() {
     <div class="hint">This link creates a brand-new profile in the same app instead of overwriting the first patient's &mdash; the parent switches between them using the profile menu inside the app.</div>
   </div>
 
-  <p class="privacy-note">This link carries the procedure name, surgery date, and (if given) the ketorolac time, appointment, and the message you typed above — no patient name is collected. <strong>Do not type a patient’s name or other identifying details into the message field</strong>, as it travels in the link.</p>
+  <p class="privacy-note">This link carries the procedure name, surgery date, and (if given) the ketorolac time, appointment, and the message you typed above — no patient name is collected, and nothing in the link is sent to any server. <strong>Do not type a patient’s name or other identifying details into the message field</strong>.</p>
 
   <!-- Printable handout: hidden on screen, only rendered by @media print -->
   <div id="printHandout">
@@ -2659,13 +2658,9 @@ var qrcode = function() {
 </div>
 
 <script>
-var KICKSTART_BUILD = "v4-2026-08-01";
-// Builds the QR code entirely in this browser and returns a data: URL.
-// Replaces the previous remote QR-image service, which received the full
-// patient link (including the free-text message) in its request logs.
+var KICKSTART_BUILD = "v5-2026-08-02";
+// Builds the QR entirely in this browser and returns a data: URL.
 function makeQrDataUrl(text) {
-  // Encode as UTF-8; the library defaults to a latin1-style encoder, which
-  // would turn a Spanish message into mojibake.
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   var qr = qrcode(0, 'M');
   qr.addData(text);
@@ -2763,10 +2758,8 @@ function toggleKetorolacTime2() {
   }
 }
 
-// A blank <input type="time"> starts its AM/PM segment on PM in Chrome, so a
-// 9 o'clock morning follow-up had to be corrected to AM every time. Seeding
-// 9:00 AM when a date is picked makes the common case right by default;
-// staff can still type any other time over it.
+// A blank <input type="time"> starts its AM/PM segment on PM, so morning
+// follow-ups had to be corrected every time.
 function defaultApptTime() {
   var date = document.getElementById('apptDate').value;
   var time = document.getElementById('apptTime');
@@ -2883,7 +2876,9 @@ function generate() {
   if (apptDate && apptTime) params.set('apptTime', apptTime);
   if (welcomeMsg) params.set('msg', welcomeMsg);
 
-  var link = base + '/?' + params.toString();
+  // '#' rather than '?': browsers do not transmit the fragment over the network,
+    // so the visit details never reach a web server, CDN log or referrer header.
+    var link = base + '/#' + params.toString();
   var qrSrc = makeQrDataUrl(link);
 
   document.getElementById('linkOutput').value = link;
@@ -2913,7 +2908,7 @@ function generate() {
     if (telegramOn) params2.set('telegram', '1');
     params2.set('newProfile', '1');
 
-    var link2 = base + '/?' + params2.toString();
+    var link2 = base + '/#' + params2.toString();
     var qrSrc2 = makeQrDataUrl(link2);
     document.getElementById('linkOutput2').value = link2;
     document.getElementById('qrImg2').src = qrSrc2;
