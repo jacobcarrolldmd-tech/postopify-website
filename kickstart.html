@@ -127,8 +127,7 @@
     .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
 </style>
-  <!-- QR library inlined: this host serves the same HTML for every path, so a
-       separate <script src> resolved to HTML. qrcode-generator 2.0.4, MIT. -->
+  <!-- QR library inlined. qrcode-generator 2.0.4, MIT. -->
   <script>
 //---------------------------------------------------------------------
 //
@@ -2451,9 +2450,13 @@ var qrcode = function() {
     <label for="practiceName">Practice name (for the printed handout)</label>
     <input type="text" id="practiceName" placeholder="e.g. Valley Endodontics &amp; Oral Surgery">
 
-    <label for="instructionsApi">Instructions API URL (optional &mdash; shows a procedure dropdown)</label>
+    <label for="practiceId">Practice ID (turns the procedure box into a dropdown)</label>
+    <input type="text" id="practiceId" placeholder="e.g. VEOS">
+    <div class="hint">Your practice&rsquo;s ID from the Postopify config sheet &mdash; the same short code used in your app&rsquo;s web address. Enter it and the procedure field below becomes a dropdown of your live procedures, so the name always matches exactly. Leave blank to keep typing procedure names by hand.</div>
+
+    <label for="instructionsApi">Instructions API URL (advanced &mdash; leave blank)</label>
     <input type="url" id="instructionsApi" placeholder="https://script.google.com/macros/s/.../exec">
-    <div class="hint">Found inside the app's own source as INSTRUCTIONS_API. When set, the procedure field below becomes a dropdown of the practice's actual live procedures instead of free text &mdash; guaranteeing it always matches. Leave blank to keep typing it manually.</div>
+    <div class="hint">Leave this blank. Postopify&rsquo;s shared instructions service is used automatically. Only fill this in if you were specifically told to point this device at a different script.</div>
 
     <label for="customNote">Custom note for the printed handout (optional)</label>
     <textarea id="customNote" placeholder="e.g. your own pain-management guidance, dosing notes, or anything else specific to your practice. Leave blank to omit this box entirely."></textarea>
@@ -2658,8 +2661,21 @@ var qrcode = function() {
 </div>
 
 <script>
-var KICKSTART_BUILD = "v5-2026-08-02";
-// Builds the QR entirely in this browser and returns a data: URL.
+var KICKSTART_BUILD = "v6-2026-08-02";
+
+// The one shared, multi-tenant Instructions API. Every practice uses this same
+// URL and identifies itself with a practice ID, instead of each needing its own
+// hand-deployed script. Pre-filled so an office never has to find or paste it.
+var SHARED_INSTRUCTIONS_API = 'https://script.google.com/macros/s/AKfycbza80m6HfLTupH_CPHJ1QHv-iygozQgERmu3VtmY4GRA0fjc522RKtVOnWvqyqI-AVy/exec';
+
+// Appends query parameters correctly whether or not the base URL already has
+// some. The previous code always joined with a question mark, so a URL that
+// already carried one produced two of them, a malformed request, and a silent
+// fall back to typing procedure names by hand.
+function apiUrl(base, params) {
+  return base + (base.indexOf('?') === -1 ? '?' : '&') + params;
+}
+
 function makeQrDataUrl(text) {
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   var qr = qrcode(0, 'M');
@@ -2680,15 +2696,22 @@ function getCustomNote() {
   return localStorage.getItem('kickstart_custom_note') || '';
 }
 
+// Falls back to the shared multi-tenant API, so a new office gets a working
+// procedure dropdown by entering only their practice ID.
 function getInstructionsApi() {
-  return localStorage.getItem('kickstart_instructions_api') || '';
+  return (localStorage.getItem('kickstart_instructions_api') || '').trim() || SHARED_INSTRUCTIONS_API;
+}
+
+function getPracticeIdSetting() {
+  return (localStorage.getItem('kickstart_practice_id') || '').trim();
 }
 
 function editAppUrl() {
   document.getElementById('appUrlCard').style.display = 'block';
   document.getElementById('appUrl').value = getAppUrl();
   document.getElementById('practiceName').value = getPracticeName();
-  document.getElementById('instructionsApi').value = getInstructionsApi();
+  document.getElementById('practiceId').value = getPracticeIdSetting();
+  document.getElementById('instructionsApi').value = localStorage.getItem('kickstart_instructions_api') || '';
   document.getElementById('customNote').value = getCustomNote();
   document.getElementById('appUrl').focus();
 }
@@ -2709,6 +2732,7 @@ function saveAppUrl() {
   }
   localStorage.setItem('kickstart_app_url', v);
   localStorage.setItem('kickstart_practice_name', document.getElementById('practiceName').value.trim());
+  localStorage.setItem('kickstart_practice_id', document.getElementById('practiceId').value.trim());
   localStorage.setItem('kickstart_instructions_api', document.getElementById('instructionsApi').value.trim());
   localStorage.setItem('kickstart_custom_note', document.getElementById('customNote').value.trim());
   refreshAppUrlDisplay();
@@ -2758,8 +2782,6 @@ function toggleKetorolacTime2() {
   }
 }
 
-// A blank <input type="time"> starts its AM/PM segment on PM, so morning
-// follow-ups had to be corrected every time.
 function defaultApptTime() {
   var date = document.getElementById('apptDate').value;
   var time = document.getElementById('apptTime');
@@ -2790,6 +2812,7 @@ function populateProcSelect(select, procs) {
 
 function loadProcedureOptions() {
   var api = getInstructionsApi();
+  var practiceId = getPracticeIdSetting();
   var select = document.getElementById('procSelect');
   var select2 = document.getElementById('procSelect2');
   var select2b = document.getElementById('patient2ProcSelect');
@@ -2798,18 +2821,23 @@ function loadProcedureOptions() {
   var textInput2b = document.getElementById('patient2Proc');
   var hint = document.getElementById('procHint');
 
-  if (!api) {
+  // Without a practice ID the shared API can't tell which practice to read, so
+  // there is nothing to build a dropdown from - go straight to free text.
+  if (!api || (api === SHARED_INSTRUCTIONS_API && !practiceId)) {
     select.style.display = 'none';
     select2.style.display = 'none';
     select2b.style.display = 'none';
     textInput.style.display = 'block';
     textInput2.style.display = 'block';
     textInput2b.style.display = 'block';
-    hint.textContent = 'Type it exactly as it appears in the app\'s procedure list, so it matches automatically.';
+    hint.textContent = 'Add your Practice ID in practice setup above to pick procedures from a list. For now, type it exactly as it appears in the app.';
     return;
   }
 
-  fetch(api + '?action=list')
+  var listUrl = apiUrl(api, 'action=list');
+  if (practiceId) listUrl = apiUrl(listUrl, 'practice_id=' + encodeURIComponent(practiceId));
+
+  fetch(listUrl)
     .then(function(r) { if (!r.ok) throw new Error('http'); return r.json(); })
     .then(function(data) {
       var procs = (data && data.procedures) ? data.procedures : (Array.isArray(data) ? data : []);
@@ -2836,7 +2864,7 @@ function loadProcedureOptions() {
       textInput.style.display = 'block';
       textInput2.style.display = 'block';
       textInput2b.style.display = 'block';
-      hint.textContent = 'Couldn\'t load the live procedure list \u2014 type it exactly as it appears in the app instead.';
+      hint.textContent = 'Couldn\'t load the procedure list \u2014 check the Practice ID in practice setup above. Type the procedure exactly as it appears in the app for now.';
     });
 }
 
@@ -2844,8 +2872,7 @@ function generate() {
   var base = getAppUrl();
   if (!base) {
     editAppUrl();
-    showSaveStatus('No app URL is set on this device yet. Enter it above and press Save, '
-      + 'then press Generate again.', true);
+    showSaveStatus('No app URL is set on this device yet. Enter it above and press Save, then press Generate again.', true);
     document.getElementById('appUrlCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
@@ -2876,9 +2903,7 @@ function generate() {
   if (apptDate && apptTime) params.set('apptTime', apptTime);
   if (welcomeMsg) params.set('msg', welcomeMsg);
 
-  // '#' rather than '?': browsers do not transmit the fragment over the network,
-    // so the visit details never reach a web server, CDN log or referrer header.
-    var link = base + '/#' + params.toString();
+  var link = base + '/#' + params.toString();
   var qrSrc = makeQrDataUrl(link);
 
   document.getElementById('linkOutput').value = link;
