@@ -152,7 +152,7 @@ body.help-mode .hs-card{overflow:visible;}
 .proc-btn.selected .proc-btn-tx small{color:rgba(255,255,255,.8);}
 .inst-panel{display:none;margin-top:14px;padding-top:0;border-top:1.5px solid var(--border);}
 .inst-panel.visible{display:block;}
-.inst-panel{scroll-margin-top:calc(var(--topbar-h, 60px) + 64px);}
+.inst-panel{scroll-margin-top:calc(var(--topbar-h, 60px) + 72px);}
 .inst-topbar{position:sticky;top:var(--topbar-h, 60px);z-index:20;background:white;display:flex;align-items:center;gap:10px;padding:12px 0 10px;margin-bottom:4px;border-bottom:1px solid var(--border);}
 .inst-back-top{flex-shrink:0;padding:8px 14px;border-radius:20px;background:var(--navy);color:white;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
 .inst-title-text{font-size:15px;font-weight:700;color:var(--navy);}
@@ -2468,31 +2468,46 @@ function showAlsoNeededBanner(idx2) {
 // scroll. Manual taps (normal selectProcedure() calls) are untouched -
 // this only runs on the kickstart-triggered path.
 function scrollInstPanelIntoView() {
-  requestAnimationFrame(function() {
+  // scrollIntoView({block:'start'}) aligns with the top of the VIEWPORT, but two
+  // sticky bars live there - the main topbar and this panel's Back/title bar -
+  // so the opening lines of the document (practice name, surgeon) ended up
+  // hidden underneath them.
+  //
+  // Heights are measured, not assumed: on a narrow phone the topbar wraps onto
+  // two rows and a long procedure title wraps as well. They're also measured
+  // REPEATEDLY - a single measurement can be taken before the title has wrapped
+  // or the web font has loaded, and the bar grows afterwards, leaving the text
+  // partly covered again. Each pass corrects whatever drift remains.
+  var passes = 0;
+
+  function stickyOffset(panel) {
+    var total = 0;
+    var topbar = document.querySelector('.topbar');
+    if (topbar) total += topbar.getBoundingClientRect().height;
+    var banner = document.getElementById('kickstartTelegramBanner');
+    if (banner && banner.offsetHeight) total += banner.getBoundingClientRect().height;
+    var instBar = panel.querySelector('.inst-topbar');
+    if (instBar) total += instBar.getBoundingClientRect().height;
+    return total;
+  }
+
+  function place() {
     var panel = document.getElementById('instPanel');
     if (!panel) return;
+    var content = document.getElementById('instArea') || panel;
 
-    // scrollIntoView({block:'start'}) aligns the panel with the top of the
-    // VIEWPORT, but two sticky bars live there - the main topbar and this
-    // panel's own Back/title bar - so the opening lines of the document (the
-    // practice name and surgeon) ended up hidden underneath them.
-    // Heights are measured rather than assumed: on a narrow phone the topbar
-    // wraps onto two rows and a long procedure title wraps too, so a fixed
-    // offset would be wrong on exactly the screens where it matters.
-    var stickyHeight = 0;
-    var topbar = document.querySelector('.topbar');
-    if (topbar) stickyHeight += topbar.getBoundingClientRect().height;
+    // How far the content currently sits from where it should sit.
+    var delta = content.getBoundingClientRect().top - stickyOffset(panel) - 12;
 
-    var banner = document.getElementById('kickstartTelegramBanner');
-    if (banner && banner.offsetHeight) stickyHeight += banner.getBoundingClientRect().height;
+    if (Math.abs(delta) > 2) {
+      window.scrollBy({ top: delta, behavior: passes === 0 ? 'smooth' : 'auto' });
+    }
 
-    var instBar = panel.querySelector('.inst-topbar');
-    if (instBar) stickyHeight += instBar.getBoundingClientRect().height;
+    passes++;
+    if (passes < 4) setTimeout(place, 220);
+  }
 
-    var target = panel.getBoundingClientRect().top + window.pageYOffset
-               - stickyHeight - 8;
-    window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
-  });
+  requestAnimationFrame(place);
 }
 
 function tryPreselectProcedure() {
