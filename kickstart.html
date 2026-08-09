@@ -3026,6 +3026,49 @@ function copyLink() {
   }
 }
 
+// ── Setup via URL parameters ───────────────────────────────────
+// Added Aug 2026. Lets this page be opened already configured for a given
+// practice, e.g. from the Postopify admin dashboard's troubleshooting
+// launcher, instead of typing the app URL and practice ID by hand.
+//
+// Recognised params (all optional except appUrl):
+//   ?appUrl=https://veos.postopify.com
+//   &practiceId=veos
+//   &practiceName=Valley%20Endodontics%20%26%20Oral%20Surgery
+//   &api=<instructions API /exec url>
+//
+// Writes straight into the SAME localStorage keys the settings form uses,
+// so behaviour afterwards is identical to having typed them in. Because it
+// overwrites saved settings, it only runs when appUrl is actually present.
+//
+// CAUTION: opening a setup link on an OFFICE's device will overwrite that
+// office's saved configuration. Intended for your own browser.
+function applySetupParams() {
+  var params;
+  try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+
+  var appUrl = (params.get('appUrl') || '').trim().replace(/\/+$/, '');
+  if (!appUrl) return;
+  if (!/^https:\/\/[a-z0-9-]+\.postopify\.com$/i.test(appUrl)) return;
+
+  localStorage.setItem('kickstart_app_url', appUrl);
+
+  var practiceId = (params.get('practiceId') || '').trim();
+  if (practiceId) localStorage.setItem('kickstart_practice_id', practiceId);
+
+  var practiceName = (params.get('practiceName') || '').trim().slice(0, 120);
+  if (practiceName) localStorage.setItem('kickstart_practice_name', practiceName);
+
+  var api = (params.get('api') || '').trim();
+  if (api && /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(api)) {
+    localStorage.setItem('kickstart_instructions_api', api);
+  }
+
+  // Clear the params so a refresh or a re-shared link doesn't re-apply them.
+  try { window.history.replaceState({}, '', window.location.pathname); } catch (e) {}
+}
+
+applySetupParams();
 document.getElementById('surgDate').value = todayStr();
 refreshAppUrlDisplay();
 loadProcedureOptions();
