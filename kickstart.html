@@ -2454,16 +2454,30 @@ var qrcode = function() {
     <input type="text" id="practiceId" placeholder="e.g. VEOS">
     <div class="hint">Your practice&rsquo;s ID from the Postopify config sheet &mdash; the same short code used in your app&rsquo;s web address. Enter it and the procedure field below becomes a dropdown of your live procedures, so the name always matches exactly. Leave blank to keep typing procedure names by hand.</div>
 
-    <label for="instructionsApi">Instructions API URL (advanced &mdash; leave blank)</label>
-    <input type="url" id="instructionsApi" placeholder="https://script.google.com/macros/s/.../exec">
-    <div class="hint">Leave this blank. Postopify&rsquo;s shared instructions service is used automatically. Only fill this in if you were specifically told to point this device at a different script.</div>
-
+        <!-- Instructions API URL — hidden from offices, not removed. saveAppUrl()
+         reads this input, so deleting the element breaks Save. The field only
+         exists to point a device at a different instructions script during a
+         migration or test; the shared service is used automatically otherwise.
+         To set it: open the console and run
+           document.getElementById('instructionsApi').value = '<url>'; saveAppUrl(); -->
+    <div style="display:none;">
+      <input type="url" id="instructionsApi">
+    </div>
     <label for="customNote">Custom note for the printed handout (optional)</label>
     <textarea id="customNote" placeholder="e.g. your own pain-management guidance, dosing notes, or anything else specific to your practice. Leave blank to omit this box entirely."></textarea>
     <div class="hint">This is your own wording, printed exactly as typed &mdash; nothing here is written or suggested automatically.</div>
 
     <button class="btn btn-primary" type="button" onclick="saveAppUrl()">Save</button>
     <div id="saveStatus" class="hint" style="display:none;margin-top:10px;"></div>
+        <div class="hint" style="margin-top:16px;padding-top:14px;border-top:1px solid #e5e7eb;">
+      <strong>Stuck, or something not working?</strong> Use the chat button at the
+      bottom right of this page &mdash; that reaches Postopify support directly.
+      You can also visit
+      <a href="https://help.postopify.com" target="_blank" rel="noopener">help.postopify.com</a>.
+      <br>
+      Please don&rsquo;t include patient names, dates of birth, or clinical details
+      in a support message.
+    </div>
   </div>
 
   <div class="card">
