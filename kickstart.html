@@ -3082,7 +3082,64 @@ function applySetupParams() {
   try { window.history.replaceState({}, '', window.location.pathname); } catch (e) {}
 }
 
-applySetupParams();
+
+
+// Applies the practice configuration the Worker injects for the office that
+// signed in with its access code. See serveKickstart() in postopify-landing.
+//
+// WHY THIS RUNS AFTER applySetupParams(): the server value wins. The office
+// signed in as a specific practice, and that is the authoritative answer to
+// "which practice is this device acting for". Letting a stale localStorage
+// value or an old ?appUrl= link override it is exactly the bug this closes —
+// a shared front-desk machine silently generating links for the wrong
+// practice, with nothing on screen to say so.
+//
+// CONSEQUENCE, deliberately accepted: the dashboard's "Open office Kickstart
+// page" launcher can no longer point your browser at a DIFFERENT practice than
+// the one you signed in as. Configure by signing in with that office's code
+// instead.
+//
+// Fields are hidden rather than removed, and their values are filled in, so
+// saveAppUrl() still reads real values instead of blanking the settings.
+function applyInjectedPracticeConfig() {
+  var cfg = window.POSTOPIFY_KICKSTART;
+  if (!cfg || !cfg.appUrl) return false;   // not signed in, or legacy session
+
+  localStorage.setItem('kickstart_app_url', String(cfg.appUrl).replace(/\/+$/, ''));
+  if (cfg.practiceId)   localStorage.setItem('kickstart_practice_id', String(cfg.practiceId));
+  if (cfg.practiceName) localStorage.setItem('kickstart_practice_name', String(cfg.practiceName));
+
+  // Hide each identity field along with its label and hint. Done in JS rather
+  // than by restructuring the markup so there is one place to undo this, and
+  // so the fields still exist for saveAppUrl() to read.
+  [
+    ['appUrl',       getAppUrl()],
+    ['practiceName', getPracticeName()],
+    ['practiceId',   getPracticeIdSetting()]
+  ].forEach(function (pair) {
+    var el = document.getElementById(pair[0]);
+    if (!el) return;
+    el.value = pair[1];
+    el.style.display = 'none';
+
+    var label = document.querySelector('label[for="' + pair[0] + '"]');
+    if (label) label.style.display = 'none';
+
+    var hint = el.nextElementSibling;
+    if (hint && hint.className === 'hint') hint.style.display = 'none';
+  });
+
+  // The card now contains only the custom handout note, so the old heading
+  // ("Practice setup — set once per device") would be describing something
+  // that no longer happens here.
+  var heading = document.querySelector('#appUrlCard h2');
+  if (heading) heading.textContent = 'Handout note';
+
+  return true;
+}
+  
+  applySetupParams();
+  applyInjectedPracticeConfig();
 document.getElementById('surgDate').value = todayStr();
 refreshAppUrlDisplay();
 loadProcedureOptions();
