@@ -3073,5 +3073,10 @@ document.getElementById('surgDate').value = todayStr();
 refreshAppUrlDisplay();
 loadProcedureOptions();
 </script>
+    <!-- BeDesk livechat — staff support. Only loads here, never in the
+         patient app: the help desk is staff-only and a patient-facing chat
+         invites PHI. This page is already behind the office passcode
+         (see handleKickstartAuth in the postopify-landing Worker). -->
+    <script src="https://help.postopify.com/livechat-loader.js"></script>
 </body>
 </html>
