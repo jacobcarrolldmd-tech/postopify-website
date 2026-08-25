@@ -126,6 +126,68 @@
     .ph-footer{display:flex;justify-content:space-between;align-items:flex-end;border-top:1.5px solid var(--border);padding-top:10px;font-size:10.5px;color:var(--gray);}
     .ph-emergency{color:var(--iodine);font-weight:700;text-align:right;}
   }
+    /* ── Help Mode ─────────────────────────────────────────────
+     Ported from the patient app. Same idea: a toggle that turns
+     every explainable control into a tap target which explains
+     itself instead of doing its normal job. */
+  .help-toggle-btn{
+    display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:20px;
+    background:#fff;border:1.5px solid var(--teal);color:var(--teal);
+    font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;
+    white-space:nowrap;flex-shrink:0;
+  }
+  .help-toggle-btn.active{background:var(--teal);color:#fff;}
+
+  .title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 4px;}
+  .title-row h1{margin:0;}
+
+  body.help-mode [data-help-key]{
+    position:relative;outline:2px dashed var(--teal);outline-offset:3px;
+    border-radius:8px;cursor:help;
+  }
+  body.help-mode [data-help-key]::after{
+    content:"?";position:absolute;top:-9px;right:-9px;width:18px;height:18px;
+    border-radius:50%;background:var(--teal);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,.3);pointer-events:none;z-index:5;
+  }
+  /* Cards clip their corners, which would also clip the "?" badge on a
+     field sitting at the card's edge. Let them show it while Help Mode
+     is on, and only then. */
+  body.help-mode .card,
+  body.help-mode .toggle-row,
+  body.help-mode .qr-box{overflow:visible;}
+
+  #helpBanner{
+    display:none;background:var(--teal-light);border:1.5px solid var(--teal);
+    border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:16px;
+    font-size:13px;line-height:1.5;color:var(--navy);
+  }
+  body.help-mode #helpBanner{display:block;}
+
+  #helpOverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;display:none;}
+  #helpOverlay.open{display:block;}
+  #helpSheet{
+    position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;
+    z-index:9999;padding:20px 20px 24px;max-width:520px;margin:0 auto;
+    box-shadow:0 -4px 24px rgba(0,0,0,.25);transform:translateY(100%);
+    transition:transform .25s ease;
+  }
+  #helpSheet.open{transform:translateY(0);}
+  #helpSheet h4{font-size:14px;font-weight:700;color:var(--navy);margin:0 0 8px;}
+  #helpSheet p{font-size:14px;color:#333;line-height:1.6;margin:0 0 14px;}
+  #helpSheet .help-close{
+    width:100%;padding:12px;border-radius:10px;background:var(--navy-light);
+    border:none;font-family:inherit;font-weight:700;color:var(--navy);cursor:pointer;
+  }
+
+  /* The sheet and overlay are position:fixed, so they would otherwise be
+     dragged onto the printed handout as blank boxes. */
+  @media print{
+    #helpOverlay,#helpSheet,#helpBanner,.help-toggle-btn{display:none !important;}
+    body.help-mode [data-help-key]{outline:none !important;}
+    body.help-mode [data-help-key]::after{content:none !important;}
+  }
 </style>
   <!-- QR library inlined. qrcode-generator 2.0.4, MIT. -->
   <script>
@@ -2433,13 +2495,23 @@ var qrcode = function() {
 <div class="wrap">
 
   <div class="eyebrow">Front desk tool</div>
-  <h1>Office Kickstart</h1>
+    <div class="title-row">
+    <h1>Office Kickstart</h1>
+    <button type="button" class="help-toggle-btn" id="helpToggleBtn"
+            onclick="toggleHelpMode()" aria-pressed="false">&#10067;&nbsp;Help</button>
+  </div>
   <p class="sub">Generate a link/QR code so a parent can set up dose reminders — and connect Telegram — while they're still in the waiting room, instead of once they get home.</p>
 
   <div class="config-note" id="appUrlNote">
     Sending to <strong id="appUrlDisplay">—</strong>
     <button type="button" onclick="editAppUrl()">change</button>
     <span id="savedFlag" style="display:none;margin-left:8px;color:#0a7d3f;font-weight:600;">Saved ✓</span>
+  </div>
+    <div id="helpBanner">
+    <strong>Help Mode is on.</strong> Tap any outlined field and it will
+    explain what it does instead of filling in. Nothing you tap right now
+    gets typed, toggled, or generated. Tap <strong>Help</strong> again to
+    switch it off.
   </div>
   <div class="card" id="appUrlCard" style="display:none;">
     <h2>Practice setup (set once per device)</h2>
@@ -3193,17 +3265,159 @@ function applyInjectedPracticeConfig() {
 
   return true;
 }
-  
+  // ── Help Mode ──────────────────────────────────────────────────────────
+// Ported from the patient app's coach-mark mode. When on, every control
+// listed in HELP below is outlined with a "?" badge, and tapping it opens a
+// plain-language explanation INSTEAD of doing what it normally does — the
+// date picker doesn't open, the toggle doesn't flip, nothing is generated.
+//
+// Aimed at a front-desk person on their first week, or one covering for
+// someone. Persisted so it survives a page reload mid-walkthrough, but
+// per-device rather than per-practice: it describes the tool, not the office.
+//
+// KEYS ARE ELEMENT IDS. Rename an id in the markup and that field quietly
+// loses its help badge — it will not throw. Deliberate: a missing explanation
+// is a small problem, a Kickstart page that white-screens at the front desk
+// during clinic is not.
+var HELP = {
+  appUrlNote: "Which practice's app this device is generating links for. If your office signed in with its access code, this was set for you and there is nothing to change. If it says \u201C(not set)\u201D, tap \u201Cchange\u201D and enter your app address.",
+
+  welcomeMsg: "An optional note the parent sees at the top of the app for this visit \u2014 \u201CGet well soon\u201D, \u201CCall us if anything worries you\u201D. It clears itself after you generate, so it never carries over to the next patient. Do not type a patient's name here.",
+
+  procName: "The procedure the patient had. If your Practice ID is set this becomes a dropdown of your live procedure list, which is the safer option \u2014 the name then always matches the app exactly. Typing it by hand works too, but it has to match exactly or the app can't load the instructions.",
+
+  procName2: "Only for a second procedure in the SAME patient \u2014 a sinus exposure alongside an extraction, say. The app flags it with a one-tap link inside the first procedure's instructions. This is not where a sibling goes; that's the \u201CSecond patient\u201D card further down.",
+
+  rxRow: "Tick what this patient was actually prescribed. Those sections open at the top of their app and the rest tuck below, so a parent isn't scrolling past medications their child was never given. The parent still chooses the specific drug and the dose times inside the app \u2014 this only decides which sections are in play. Leave everything unticked and the app opens exactly the way it always has.",
+
+  surgDate: "The day of surgery. Everything in the app counts from this \u2014 Day of Surgery, Day 1, and so on \u2014 so it is the one field worth double-checking. Defaults to today.",
+
+  ketorolacOn: "Turn this on if Toradol was given in the office. The app then marks the first Ibuprofen dose as already taken at the time you enter, so it schedules the next one six hours out instead of the parent guessing. Ketorolac and ibuprofen are the same class of medication, which is why it counts as dose one.",
+
+  ketorolacTime: "The time the ketorolac was actually given, not the time you are filling this in. The app counts six hours from here.",
+
+  apptDate: "If they already have a post-op visit booked, put it here and the app offers to add it to the parent's phone calendar. Leave it blank if nothing is scheduled yet \u2014 blank simply omits it.",
+
+  telegramOn: "On by default. The app shows a one-tap \u201CConnect Telegram\u201D banner the moment it opens, so the family sets up dose reminders in the waiting room rather than trying to find the option later at home.",
+
+  secondPatientOn: "For siblings seen in the same visit. Turning this on generates a SECOND, separate QR code below \u2014 not one code covering both. Each child gets their own profile in the same app, and the parent switches between them from the profile menu.",
+
+  customNote: "Your own wording, printed on the patient handout exactly as typed. Nothing here is written or suggested automatically. Leave it blank and the box is left off the handout entirely.",
+
+  qrImg: "The parent points their phone camera at this. It opens the app already filled in with the procedure and date you entered. No download, no account, and no patient name travels through it.",
+
+  linkOutput: "The same thing as the QR code, as a link \u2014 for when it is easier to send than to scan. Tap Copy, then paste it wherever you are sending it."
+};
+
+// Element id → whether the outline should wrap the whole toggle row rather
+// than the checkbox alone. A lone 24px checkbox with a dashed ring round it
+// reads as a rendering glitch; the row, with its label, reads as a target.
+var HELP_WRAP_TOGGLE = { ketorolacOn: 1, telegramOn: 1, secondPatientOn: 1 };
+
+// Some fields swap between a <select> and a text <input> depending on whether
+// the procedure list loaded. Both need the badge, or help disappears for
+// exactly the offices still typing procedure names by hand.
+var HELP_ALIASES = { procName: ['procSelect'], procName2: ['procSelect2'] };
+
+function wireHelpTargets() {
+  Object.keys(HELP).forEach(function (key) {
+    var ids = [key].concat(HELP_ALIASES[key] || []);
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (HELP_WRAP_TOGGLE[key] && el.closest) {
+        var row = el.closest('.toggle-row');
+        if (row) el = row;
+      }
+      el.setAttribute('data-help-key', key);
+    });
+  });
+}
+
+function isHelpModeOn() {
+  try { return localStorage.getItem('kickstart_help_mode') === '1'; } catch (e) { return false; }
+}
+
+function toggleHelpMode() {
+  var on = !isHelpModeOn();
+  try { localStorage.setItem('kickstart_help_mode', on ? '1' : '0'); } catch (e) {}
+  applyHelpModeUI();
+  if (!on) closeHelpPopup();
+}
+
+function applyHelpModeUI() {
+  var on = isHelpModeOn();
+  document.body.classList.toggle('help-mode', on);
+  var btn = document.getElementById('helpToggleBtn');
+  if (btn) {
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+}
+
+function showHelpPopup(el) {
+  var text = HELP[el.getAttribute('data-help-key')];
+  if (!text) return;
+  document.getElementById('helpSheetText').textContent = text;
+  document.getElementById('helpOverlay').classList.add('open');
+  document.getElementById('helpSheet').classList.add('open');
+}
+
+function closeHelpPopup() {
+  var o = document.getElementById('helpOverlay');
+  var s = document.getElementById('helpSheet');
+  if (o) o.classList.remove('open');
+  if (s) s.classList.remove('open');
+}
+
+// TWO listeners, both capture-phase on document so they run before any inline
+// onclick= on the page.
+//
+// The mousedown one is not redundant. Cancelling the CLICK stops the toggle
+// from flipping, but focus has already moved by then — on a date or time
+// field the native picker is open and covering the explanation you were
+// trying to read. Cancelling mousedown is what actually prevents focus.
+document.addEventListener('mousedown', function (e) {
+  if (!isHelpModeOn() || !e.target.closest) return;
+  if (e.target.closest('[data-help-key]')) e.preventDefault();
+}, true);
+
+document.addEventListener('click', function (e) {
+  if (!isHelpModeOn() || !e.target.closest) return;
+  var el = e.target.closest('[data-help-key]');
+  if (!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  showHelpPopup(el);
+}, true);
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeHelpPopup();
+});
   applySetupParams();
-  applyInjectedPracticeConfig();
+applyInjectedPracticeConfig();
 document.getElementById('surgDate').value = todayStr();
 refreshAppUrlDisplay();
 loadProcedureOptions();
+wireHelpTargets();
+applyHelpModeUI();
+
+// NOTE: wireHelpTargets() runs AFTER loadProcedureOptions(). That call is
+// async — the dropdowns are populated later — but the <select> elements
+// themselves already exist in the markup, so tagging them here is safe. If
+// procedure selects ever become dynamically CREATED rather than shown and
+// hidden, this has to move into that fetch's .then().
 </script>
     <!-- BeDesk livechat — staff support. Only loads here, never in the
          patient app: the help desk is staff-only and a patient-facing chat
          invites PHI. This page is already behind the office passcode
          (see handleKickstartAuth in the postopify-landing Worker). -->
     <script src="https://help.postopify.com/livechat-loader.js"></script>
+  <div id="helpOverlay" onclick="closeHelpPopup()"></div>
+  <div id="helpSheet" role="dialog" aria-modal="true" aria-labelledby="helpSheetTitle">
+    <h4 id="helpSheetTitle">&#10067; How this works</h4>
+    <p id="helpSheetText"></p>
+    <button type="button" class="help-close" onclick="closeHelpPopup()">Got it</button>
+  </div>
 </body>
 </html>
