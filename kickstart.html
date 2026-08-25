@@ -188,6 +188,8 @@
     body.help-mode [data-help-key]{outline:none !important;}
     body.help-mode [data-help-key]::after{content:none !important;}
   }
+    #nextPatientBar{display:none;margin-bottom:16px;}
+  #nextPatientBar .hint{text-align:center;margin:8px 0 0;}
 </style>
   <!-- QR library inlined. qrcode-generator 2.0.4, MIT. -->
   <script>
@@ -2683,7 +2685,12 @@ var qrcode = function() {
     </div>
     <div class="hint">This link creates a brand-new profile in the same app instead of overwriting the first patient's &mdash; the parent switches between them using the profile menu inside the app.</div>
   </div>
-
+  <div id="nextPatientBar">
+    <button class="btn btn-primary" type="button" id="nextPatientBtn"
+            onclick="nextPatient()">Next patient</button>
+    <div class="hint">Clears this patient and takes the QR code off the screen.
+      Your practice setup and the printed handout note are kept.</div>
+  </div>
   <p class="privacy-note">This link carries the procedure name, surgery date, and (if given) the ketorolac time, appointment, and the message you typed above — no patient name is collected, and nothing in the link is sent to any server. <strong>Do not type a patient’s name or other identifying details into the message field</strong>.</p>
 
   <!-- Printable handout: hidden on screen, only rendered by @media print -->
@@ -3045,6 +3052,7 @@ params.set('rx', collectRxKeys());
   document.getElementById('qrImg').src = qrSrc;
   document.getElementById('resultCard').classList.add('visible');
   document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('nextPatientBar').style.display = 'block';
 
   // Second patient (e.g. a sibling seen in the same visit) - a completely
   // separate link/QR code carrying its own newProfile=1 flag, rather than
@@ -3265,6 +3273,60 @@ function applyInjectedPracticeConfig() {
 
   return true;
 }
+  // Ends the current handoff. Resets everything that belongs to ONE patient and
+// keeps everything that belongs to the DEVICE — app URL, practice name,
+// practice ID, the printed handout note.
+//
+// Surgery date is reset to today rather than blanked. Blank would force a
+// re-entry for every patient in a clinic where the answer is "today" all day;
+// today is both the common case and visibly wrong when it isn't.
+//
+// The QR <img> sources are cleared, not just hidden. A hidden <img> still
+// holds the previous patient's link, and #printHandout is only display:none on
+// screen — a stray Ctrl+P would otherwise print the last patient's code.
+function nextPatient() {
+  ['procName', 'procName2', 'welcomeMsg', 'ketorolacTime', 'apptDate', 'apptTime']
+    .forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+  ['procSelect', 'procSelect2'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+
+  var keto = document.getElementById('ketorolacOn');
+  if (keto) keto.checked = false;
+  var ketoField = document.getElementById('ketorolacTimeField');
+  if (ketoField) ketoField.classList.remove('visible');
+
+  if (typeof clearRxKeys === 'function') clearRxKeys();
+  if (typeof updateWelcomeMsgCount === 'function') updateWelcomeMsgCount();
+
+  document.getElementById('surgDate').value = todayStr();
+
+  // Take the last patient off the screen.
+  ['resultCard', 'resultCard2'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('visible');
+  });
+  ['qrImg', 'qrImg2', 'phQrImg', 'phQrImg2'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.src = '';
+  });
+  ['linkOutput', 'linkOutput2'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('nextPatientBar').style.display = 'none';
+
+  // Telegram is a practice-level preference, not a per-patient one, so it is
+  // deliberately left wherever the office set it.
+
+  var card = document.getElementById('surgDate').closest('.card');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
   // ── Help Mode ──────────────────────────────────────────────────────────
 // Ported from the patient app's coach-mark mode. When on, every control
 // listed in HELP below is outlined with a "?" badge, and tapping it opens a
@@ -3306,7 +3368,8 @@ var HELP = {
 
   qrImg: "The parent points their phone camera at this. It opens the app already filled in with the procedure and date you entered. No download, no account, and no patient name travels through it.",
 
-  linkOutput: "The same thing as the QR code, as a link \u2014 for when it is easier to send than to scan. Tap Copy, then paste it wherever you are sending it."
+  linkOutput: "The same thing as the QR code, as a link \u2014 for when it is easier to send than to scan. Tap Copy, then paste it wherever you are sending it.",
+    nextPatientBtn: "Press this when the family has scanned or been sent their code. It clears the procedure, date, medications and appointment so nothing carries over to the next patient, and takes the QR code off the screen. Your practice setup and handout note are kept."
 };
 
 // Element id → whether the outline should wrap the whole toggle row rather
