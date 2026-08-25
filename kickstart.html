@@ -2497,7 +2497,26 @@ var qrcode = function() {
     <label for="procName2">Second procedure (optional &mdash; e.g. also had a sinus exposure)</label>
     <select id="procSelect2" style="display:none;"></select>
     <input type="text" id="procName2" placeholder="e.g. Sinus Communication Occurrence">
-    <div class="hint">If more than one procedure applies, the app will flag this one with a one-tap link right inside the first procedure's instructions. Leave blank if only one applies.</div>
+    <div class="hint">If more than one procedure applies, the app will flag this one with a one-tap link right inside the first procedure's instructions. Leave blank if only one applies.</div>    <label style="margin-top:18px;">What was prescribed?</label>
+    <div id="rxRow" style="display:flex;flex-wrap:wrap;gap:10px 18px;margin:6px 0 4px;">
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;">
+        <input type="checkbox" id="rx_ks_ibu"><span>Ibuprofen</span></label>
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;">
+        <input type="checkbox" id="rx_ks_pain"><span>Pain medication</span></label>
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;">
+        <input type="checkbox" id="rx_ks_abx"><span>Antibiotic</span></label>
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;">
+        <input type="checkbox" id="rx_ks_tylenol"><span>Tylenol</span></label>
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;">
+        <input type="checkbox" id="rx_ks_steroid"><span>Steroid</span></label>
+      <label style="display:flex;align-items:center;gap:7px;font-weight:500;">
+        <input type="checkbox" id="rx_ks_journavx"><span>Journavx</span></label>
+    </div>
+    <div class="hint">Tick what this patient was prescribed and those sections
+      open at the top of their app, with the rest tucked below. The parent
+      still picks the specific drug and dose times &mdash; this only decides
+      which sections are in play. Leave all unticked and the app opens the way
+      it always has.</div>
 
     <label for="surgDate">Surgery date</label>
     <input type="date" id="surgDate">
@@ -2766,7 +2785,31 @@ function refreshAppUrlDisplay() {
   document.getElementById('appUrlDisplay').textContent = v || '(not set)';
   if (!v) editAppUrl();
 }
+// Which medication sections the app should open, as short keys rather than
+// drug names. "rx=pain,abx" in a URL, a QR code, and browser history exposes
+// considerably less than "oxycodone,amoxicillin" would — the specific drug is
+// still chosen by the parent inside the app.
+//
+// Keys must match RX_KEYS in the app's index.html. If a medication is ever
+// added there, add it here too or offices simply won't be able to pre-select
+// it — it fails quiet, so this comment is the reminder.
+var RX_KS_KEYS = ['ibu', 'pain', 'abx', 'tylenol', 'steroid', 'journavx'];
 
+function collectRxKeys() {
+  var picked = [];
+  RX_KS_KEYS.forEach(function (key) {
+    var box = document.getElementById('rx_ks_' + key);
+    if (box && box.checked) picked.push(key);
+  });
+  return picked.join(',');
+}
+
+function clearRxKeys() {
+  RX_KS_KEYS.forEach(function (key) {
+    var box = document.getElementById('rx_ks_' + key);
+    if (box) box.checked = false;
+  });
+}
 function toggleKetorolacTime() {
   var on = document.getElementById('ketorolacOn').checked;
   var field = document.getElementById('ketorolacTimeField');
@@ -2917,6 +2960,12 @@ function generate() {
   if (apptDate && apptTime) params.set('apptTime', apptTime);
   if (welcomeMsg) params.set('msg', welcomeMsg);
 
+// Always set, even when empty. In the app an empty rx= means "none of these",
+// which is a real instruction; a MISSING rx= means "this link predates the
+// feature, leave the medications alone". Those must not collapse into each
+// other, or a patient on a shared phone inherits the previous patient's
+// medication set.
+params.set('rx', collectRxKeys());
   var link = base + '/#' + params.toString();
   var qrSrc = makeQrDataUrl(link);
 
@@ -2945,6 +2994,12 @@ function generate() {
     if (p2Proc) params2.set('proc', p2Proc);
     if (p2KetoOn && p2KetoTime) params2.set('ketorolacTime', p2KetoTime);
     if (telegramOn) params2.set('telegram', '1');
+    // The sibling inherits patient 1's medication list. Siblings seen in one
+// visit are usually prescribed the same things, and a second full checkbox
+// row for the rarer case would cost more attention at the front desk than it
+// saves. When they genuinely differ, the parent unticks in the app — which is
+// the same place they would have set it anyway.
+params2.set('rx', collectRxKeys());
     params2.set('newProfile', '1');
 
     var link2 = base + '/#' + params2.toString();
@@ -2994,6 +3049,7 @@ function generate() {
   // change it.
   document.getElementById('welcomeMsg').value = '';
   updateWelcomeMsgCount();
+  clearRxKeys();
 
   // Same reasoning for the second-patient fields - per-visit, not
   // per-device, so they shouldn't carry over to the next set of siblings.
