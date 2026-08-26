@@ -2768,6 +2768,32 @@ var qrcode = function() {
     </div>
     <div class="hint">This link creates a brand-new profile in the same app instead of overwriting the first patient's &mdash; the parent switches between them using the profile menu inside the app.</div>
   </div>
+  <div id="emailFallback" style="display:none;border:1.5px solid var(--iodine);background:var(--iodine-light);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:16px;font-size:13px;line-height:1.5;color:var(--navy);">
+    <strong>Did nothing open?</strong> This computer probably has no email program set up
+    for links. Nothing was sent.
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button type="button" class="btn-copy" onclick="copyLink()">Copy the link instead</button>
+      <button type="button" class="btn-copy" onclick="var h=document.getElementById('mailtoHelp');h.style.display=h.style.display==='block'?'none':'block';">How to set it up</button>
+    </div>
+    <div id="mailtoHelp" style="display:none;margin-top:11px;padding-top:11px;border-top:1px solid var(--iodine);">
+      <strong>Windows:</strong> Settings &rarr; Apps &rarr; Default apps &rarr;
+      <em>Choose defaults by link type</em> &rarr; find <strong>MAILTO</strong> &rarr;
+      pick your email program. (Setting a default for the Mail <em>app</em> is not the
+      same thing &mdash; MAILTO is its own entry.)
+      <br><br>
+      <strong>If your office uses webmail</strong> (Gmail or Outlook on the web): open it
+      in Chrome and click the small handler icon at the right of the address bar, then
+      <em>Allow</em>. If it isn&rsquo;t showing: Chrome &rarr; Settings &rarr; Privacy and
+      security &rarr; Site settings &rarr; Additional permissions &rarr; Protocol handlers.
+      <br><br>
+      <strong>Mac:</strong> open Mail &rarr; Settings &rarr; General &rarr;
+      <em>Default email reader</em>.
+      <br><br>
+      This only has to be done once per computer. Until then, <strong>Copy</strong> works
+      everywhere &mdash; paste the link into an email yourself.
+    </div>
+  </div>
+
   <div id="nextPatientBar">
     <button class="btn btn-primary" type="button" id="nextPatientBtn"
             onclick="nextPatient()">Next patient</button>
@@ -3270,9 +3296,36 @@ function emailLinkFrom_(inputId) {
     'take it and the time is logged for you.\n\n' +
     'If you have any questions about your medications, please call our office.';
 
+  var fallback = document.getElementById('emailFallback');
+  if (fallback) fallback.style.display = 'none';
+
+  // There is NO way to ask a browser whether a mailto: handler is registered,
+  // and a click with no handler does nothing at all — silently. The only
+  // workable test is watching for the page to lose focus, which is what
+  // happens when a mail client, Chrome's "choose an app" dialog, or a webmail
+  // tab takes over. Still focused after 1.2s means nothing opened.
+  //
+  // This is a HEURISTIC and can misfire if the user tabs away for their own
+  // reasons, which is why the notice it reveals is phrased as a question
+  // ("Did nothing open?") rather than an assertion. It must be harmless when
+  // it is wrong. Do not reword it into a definite statement.
+  var left = false;
+  function markLeft() { left = true; }
+  window.addEventListener('blur', markLeft);
+  document.addEventListener('visibilitychange', markLeft);
+
   window.location.href =
     'mailto:?subject=' + encodeURIComponent(subject) +
     '&body=' + encodeURIComponent(body);
+
+  setTimeout(function () {
+    window.removeEventListener('blur', markLeft);
+    document.removeEventListener('visibilitychange', markLeft);
+    if (!left && document.hasFocus() && fallback) {
+      fallback.style.display = 'block';
+      fallback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, 1200);
 }
 
 function emailLink()  { emailLinkFrom_('linkOutput'); }
@@ -3438,6 +3491,10 @@ function nextPatient() {
     if (el) el.value = '';
   });
   document.getElementById('nextPatientBar').style.display = 'none';
+  var emailFallbackEl = document.getElementById('emailFallback');
+  if (emailFallbackEl) emailFallbackEl.style.display = 'none';
+  var mailtoHelpEl = document.getElementById('mailtoHelp');
+  if (mailtoHelpEl) mailtoHelpEl.style.display = 'none';
 
   // Telegram is a practice-level preference, not a per-patient one, so it is
   // deliberately left wherever the office set it.
