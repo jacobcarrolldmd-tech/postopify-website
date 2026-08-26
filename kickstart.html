@@ -2747,7 +2747,12 @@ var qrcode = function() {
     <div class="link-row">
       <input type="text" id="linkOutput" readonly>
       <button class="btn-copy" type="button" onclick="copyLink()">Copy</button>
+      <button class="btn-copy" type="button" id="emailBtn" onclick="emailLink()">Email</button>
     </div>
+    <div class="hint" style="margin-top:10px;">Opens your own email program with the link
+      ready to send &mdash; you type the patient&rsquo;s address there. It is never entered
+      into Postopify and never stored. Check your office&rsquo;s policy before emailing
+      procedure details.</div>
     <button class="btn btn-secondary" type="button" onclick="printHandout()">Print patient handout</button>
   </div>
 
@@ -2759,6 +2764,7 @@ var qrcode = function() {
     <div class="link-row">
       <input type="text" id="linkOutput2" readonly>
       <button class="btn-copy" type="button" onclick="copyLink2()">Copy</button>
+      <button class="btn-copy" type="button" id="emailBtn2" onclick="emailLink2()">Email</button>
     </div>
     <div class="hint">This link creates a brand-new profile in the same app instead of overwriting the first patient's &mdash; the parent switches between them using the profile menu inside the app.</div>
   </div>
@@ -3237,6 +3243,41 @@ function updateWelcomeMsgCount() {
   if (el && counter) counter.textContent = 200 - el.value.length;
 }
 
+// ── Email the link ────────────────────────────────────────────────────
+// Opens the OFFICE's own mail client with the link pre-filled and the
+// recipient deliberately BLANK. The address is typed into the practice's own
+// email system — nothing about the patient enters Postopify, is transmitted to
+// any server of ours, or is stored. Adding a real "patient email" field here
+// would put a patient identifier into this tool for the first time and would
+// change the answer to counsel question 1 (are we a business associate?),
+// which is still open. Do not "improve" this into one.
+//
+// The subject line carries NO procedure name and NO date on purpose — a
+// subject is the part most likely to be readable on a lock screen. The link
+// carries them, which is the same exposure the QR code already has.
+//
+// Fails silently when the machine has no mail client configured (common on a
+// front desk using webmail only). That is why Copy is kept beside it.
+function emailLinkFrom_(inputId) {
+  var link = document.getElementById(inputId).value;
+  if (!link) return;
+
+  var subject = 'Your post-operative medication schedule';
+  var body =
+    'Here is your post-operative medication schedule:\n\n' +
+    link + '\n\n' +
+    'Open it on your phone — no app or account is needed. Tap each dose as you ' +
+    'take it and the time is logged for you.\n\n' +
+    'If you have any questions about your medications, please call our office.';
+
+  window.location.href =
+    'mailto:?subject=' + encodeURIComponent(subject) +
+    '&body=' + encodeURIComponent(body);
+}
+
+function emailLink()  { emailLinkFrom_('linkOutput'); }
+function emailLink2() { emailLinkFrom_('linkOutput2'); }
+
 function printHandout() {
   if (!document.getElementById('resultCard').classList.contains('visible')) return;
   window.print();
@@ -3446,6 +3487,8 @@ var HELP = {
   qrImg: "The parent points their phone camera at this. It opens the app already filled in with the procedure and date you entered. No download, no account, and no patient name travels through it.",
 
   linkOutput: "The same thing as the QR code, as a link \u2014 for when it is easier to send than to scan. Tap Copy, then paste it wherever you are sending it.",
+  emailBtn: "Opens your own email program with the link already written out for you. You type the patient's address in there — it is never typed into this page and Postopify never stores it. If nothing happens when you tap this, this computer has no email program set up; use Copy instead and paste it into your webmail.",
+
     nextPatientBtn: "Press this when the family has scanned or been sent their code. It clears the procedure, date, medications and appointment so nothing carries over to the next patient, and takes the QR code off the screen. Your practice setup and handout note are kept."
 };
 
