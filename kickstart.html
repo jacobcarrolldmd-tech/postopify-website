@@ -2751,8 +2751,10 @@ var qrcode = function() {
     </div>
     <div class="hint" style="margin-top:10px;">Opens your own email program with the link
       ready to send &mdash; you type the patient&rsquo;s address there. It is never entered
-      into Postopify and never stored. Check your office&rsquo;s policy before emailing
-      procedure details.</div>
+      into Postopify and never stored. It opens in a new tab, so this page stays put.
+      It sends from whichever email account this computer is signed in to &mdash;
+      <strong>check the From address is the practice, not a personal account</strong>.
+      Check your office&rsquo;s policy before emailing procedure details.</div>
     <button class="btn btn-secondary" type="button" onclick="printHandout()">Print patient handout</button>
   </div>
 
@@ -3314,9 +3316,26 @@ function emailLinkFrom_(inputId) {
   window.addEventListener('blur', markLeft);
   document.addEventListener('visibilitychange', markLeft);
 
-  window.location.href =
+  // Opened via a target="_blank" anchor, NOT window.location.href.
+  //
+  // WHY: mailto: handlers come in two kinds. A native app (Outlook, Mail) opens
+  // alongside and leaves this page alone. But a WEB handler — Gmail, Shortwave,
+  // Outlook Web, registered under chrome://settings/handlers — is just a URL,
+  // and assigning location.href navigates THIS tab to it. The front desk then
+  // loses the Kickstart page mid-patient and has to press Back repeatedly to
+  // get the QR code back. Observed live on Aug 26 with Shortwave.
+  //
+  // An anchor with target="_blank" is correct for both: a native app still
+  // opens alongside, and a web handler opens in its own tab.
+  var mailAnchor = document.createElement('a');
+  mailAnchor.href =
     'mailto:?subject=' + encodeURIComponent(subject) +
     '&body=' + encodeURIComponent(body);
+  mailAnchor.target = '_blank';
+  mailAnchor.rel = 'noopener';
+  document.body.appendChild(mailAnchor);
+  mailAnchor.click();
+  mailAnchor.remove();
 
   setTimeout(function () {
     window.removeEventListener('blur', markLeft);
