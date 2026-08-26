@@ -190,6 +190,71 @@
   }
     #nextPatientBar{display:none;margin-bottom:16px;}
   #nextPatientBar .hint{text-align:center;margin:8px 0 0;}
+
+  /* ══ Navy masthead restyle — added Aug 26, 2026 ═══════════════
+     Additive override block. Delete from here to the end marker to
+     revert completely. Paired with the masthead markup that replaced
+     the old .eyebrow / .title-row / .sub / .config-note group. */
+
+  :root{
+    --brand-navy:#1B3A6B; --cream:#F7F4EE;
+    --on-dark:rgba(255,255,255,.80); --on-dark-soft:rgba(255,255,255,.62);
+  }
+
+  body{
+    padding:0 16px 80px;
+    background-color:#173257;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='96' viewBox='0 0 120 96'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.075' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 17 H42'/%3E%3Cpath d='M60 17 l9 9 l17 -19'/%3E%3Cpath d='M10 47 H42'/%3E%3Cpath d='M60 47 l9 9 l17 -19'/%3E%3Cpath d='M10 77 H42'/%3E%3Cpath d='M60 77 l9 9 l17 -19'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(165deg,#12315c 0%,#1B3A6B 42%,#26538f 100%);
+    background-repeat:repeat, no-repeat;
+    background-attachment:scroll, fixed;
+  }
+
+  .masthead{display:flex;align-items:center;gap:13px;padding:12px 0 10px;}
+  .masthead-plate{background:var(--cream);border-radius:10px;padding:7px 10px;
+    flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.20);}
+  .masthead-plate img{display:block;width:104px;height:auto;}
+  .masthead-text{min-width:0;flex:1;}
+  .masthead-text .role{color:var(--on-dark-soft);font-size:11px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;margin:0 0 3px;}
+  .masthead-text h1{color:#fff;font-size:15px;line-height:1.25;font-weight:700;
+    letter-spacing:-0.01em;margin:0;}
+
+  .util{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;
+    padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.16);
+    margin-bottom:14px;font-size:12px;color:var(--on-dark);}
+  .util .practice{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .util .practice strong{color:#fff;font-weight:700;}
+  .util button.linky{background:none;border:none;color:#8fd3e0;font-weight:700;
+    font-family:inherit;font-size:12px;cursor:pointer;text-decoration:underline;padding:0;}
+  #savedFlag{margin-left:8px;color:#7ee0a8;font-weight:600;}
+
+  #aboutBox{display:none;color:var(--on-dark);font-size:13px;line-height:1.55;
+    background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.16);
+    border-radius:12px;padding:12px 14px;margin-bottom:14px;}
+  #aboutBox.open{display:block;}
+
+  .help-toggle-btn{padding:5px 12px;background:rgba(255,255,255,.10);
+    border:1.5px solid rgba(255,255,255,.45);color:#fff;}
+  .help-toggle-btn.active{background:#fff;color:var(--brand-navy);border-color:#fff;}
+
+  .card{border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 16px rgba(8,24,48,.18);}
+
+  .btn-primary{background:var(--brand-navy);}
+  .btn-primary:active{background:#142c52;}
+
+  .privacy-note{color:var(--on-dark-soft);}
+  .privacy-note strong{color:rgba(255,255,255,.9);}
+  #nextPatientBar .hint{color:var(--on-dark-soft);}
+
+  body.help-mode .util [data-help-key]{outline-color:#8fd3e0;}
+
+  @media print{
+    body{background:#fff !important;background-image:none !important;padding:0;}
+    .masthead,.util,#aboutBox{display:none !important;}
+  }
+  /* ══ end navy masthead restyle ═══════════════════════════════ */
 </style>
   <!-- QR library inlined. qrcode-generator 2.0.4, MIT. -->
   <script>
@@ -2496,20 +2561,32 @@ var qrcode = function() {
 <body>
 <div class="wrap">
 
-  <div class="eyebrow">Front desk tool</div>
-    <div class="title-row">
-    <h1>Office Kickstart</h1>
+  <header class="masthead">
+    <div class="masthead-plate"><img src="/postopify-logo.png" alt="Postopify"></div>
+    <div class="masthead-text">
+      <p class="role">Front office</p>
+      <h1>Kickstart &mdash; Patient Setup</h1>
+    </div>
+  </header>
+
+  <div class="util">
+    <div class="practice" id="appUrlNote">
+      Sending to <strong id="appUrlDisplay">&mdash;</strong>
+      <button type="button" class="linky" onclick="editAppUrl()">change</button>
+      <span id="savedFlag" style="display:none;">Saved &#10003;</span>
+    </div>
+    <button type="button" class="linky"
+            onclick="document.getElementById('aboutBox').classList.toggle('open')">What is this?</button>
     <button type="button" class="help-toggle-btn" id="helpToggleBtn"
             onclick="toggleHelpMode()" aria-pressed="false">&#10067;&nbsp;Help</button>
   </div>
-  <p class="sub">Generate a link/QR code so a parent can set up dose reminders — and connect Telegram — while they're still in the waiting room, instead of once they get home.</p>
 
-  <div class="config-note" id="appUrlNote">
-    Sending to <strong id="appUrlDisplay">—</strong>
-    <button type="button" onclick="editAppUrl()">change</button>
-    <span id="savedFlag" style="display:none;margin-left:8px;color:#0a7d3f;font-weight:600;">Saved ✓</span>
+  <div id="aboutBox">
+    Generate a link/QR code so a parent can set up dose reminders &mdash; and connect
+    Telegram &mdash; while they're still in the waiting room, instead of once they get home.
   </div>
-    <div id="helpBanner">
+
+  <div id="helpBanner">
     <strong>Help Mode is on.</strong> Tap any outlined field and it will
     explain what it does instead of filling in. Nothing you tap right now
     gets typed, toggled, or generated. Tap <strong>Help</strong> again to
