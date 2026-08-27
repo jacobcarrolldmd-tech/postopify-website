@@ -1,0 +1,39 @@
+{
+  // Postopify marketing site — Cloudflare Workers Static Assets.
+  //
+  // Serves ./site/ at staging.postopify.com. Does NOT touch postopify.com,
+  // which keeps serving the placeholder from the postopify-landing Worker
+  // until counsel signs off.
+  //
+  // IMPORTANT: the assets directory is ./site/ and not the repo root. Static
+  // assets are served BEFORE any Worker code runs, so pointing this at the
+  // root would publish kickstart.html as a plain file with no passcode.
+
+  "name": "postopify-site",
+  "main": "./src/index.js",
+  "compatibility_date": "2026-08-27",
+
+  "assets": {
+    "directory": "./site/",
+    "binding": "ASSETS",
+    // Real 404s for unknown paths. The postopify-landing Worker matches on
+    // hostname only, so every path there returns 200 — that trap cost a
+    // wrong diagnosis on the logo 404. This is the fix.
+    "not_found_handling": "404-page",
+    // Run the Worker before serving assets so it can add noindex headers.
+    // This is NOT an access gate — Cloudflare Access is.
+    "run_worker_first": true
+  },
+
+  "routes": [
+    {
+      // custom_domain creates the DNS record on deploy. Use this rather than
+      // the dashboard's Worker route dialog, which is where the "Onboard
+      // domain" button lives.
+      "pattern": "staging.postopify.com",
+      "custom_domain": true
+    }
+  ],
+
+  "observability": { "enabled": true }
+}

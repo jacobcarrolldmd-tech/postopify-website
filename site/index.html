@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postopify — Aftercare that survives the ride home</title>
+<meta name="description" content="Postopify turns your practice's post-operative instructions into a personal code for every patient, scanned in the lobby or emailed from the front desk. They open it once and have easy access to their post-operative instructions and medication schedule on their own phone for quick, convenient, private and easy access — no paper instructions to keep track of, and nothing to lose.">
+<link rel="icon" href="postopify-wordmark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     Brand palette sampled directly from postopifylogocream.png:
+       navy  #12294A   teal #17A398   cream #F7F4EE   slate #98A2B0
+     The mid-navy #1B3A6B and the checkmark motif are carried over
+     from the Kickstart masthead so the marketing site, the staff
+     tool and the help center read as one product.
+     ═══════════════════════════════════════════════════════════════ */
+  :root{
+    --navy:#12294A;
+    --navy-mid:#1B3A6B;
+    --navy-light:#26538f;
+    --navy-deep:#0E2340;
+    --teal:#17A398;
+    --teal-deep:#0F7F76;
+    --teal-pale:#E4F2F0;
+    --cream:#F7F4EE;
+    --slate:#98A2B0;
+
+    --ink:#12294A;
+    --ink-soft:#4E5C6B;
+    --paper:#FFFFFF;
+    --line:#DED8CD;
+    --line-soft:#EBE6DC;
+
+    --on-dark:rgba(255,255,255,.82);
+    --on-dark-soft:rgba(255,255,255,.58);
+
+    --display:'Space Grotesk', system-ui, sans-serif;
+    --body:'Source Serif 4', Georgia, serif;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+
+    --motif:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='96' viewBox='0 0 120 96'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.075' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 17 H42'/%3E%3Cpath d='M60 17 l9 9 l17 -19'/%3E%3Cpath d='M10 47 H42'/%3E%3Cpath d='M60 47 l9 9 l17 -19'/%3E%3Cpath d='M10 77 H42'/%3E%3Cpath d='M60 77 l9 9 l17 -19'/%3E%3C/g%3E%3C/svg%3E");
+    --navy-bg:linear-gradient(165deg,var(--navy-deep) 0%,var(--navy) 45%,var(--navy-mid) 100%);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:var(--body); font-size:17px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--display); font-weight:600; letter-spacing:-0.015em; margin:0;}
+  a{color:inherit;}
+  img,svg,video{display:block; max-width:100%;}
+  :focus-visible{outline:2px solid var(--teal); outline-offset:3px;}
+  .mono{font-family:var(--mono);}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
+
+  /* ─── header ───────────────────────────────────────────────── */
+  header{
+    position:sticky; top:0; z-index:60;
+    background:var(--navy); background-image:var(--motif), var(--navy-bg);
+    background-repeat:repeat, no-repeat;
+    border-bottom:1px solid rgba(255,255,255,.13);
+  }
+  .header-row{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:11px 0;}
+  .brand{display:block; text-decoration:none; flex:none;}
+  .brand .plate{
+    background:var(--cream); border-radius:9px; padding:7px 12px;
+    box-shadow:0 3px 12px rgba(0,0,0,.24); display:block;
+  }
+  .brand .plate img{width:126px; height:auto;}
+  nav.main{display:flex; align-items:center; gap:26px;}
+  nav.main a{font-family:var(--mono); font-size:13px; color:var(--on-dark); text-decoration:none;}
+  nav.main a:hover{color:#fff;}
+  nav.main a.cta{background:var(--teal); color:#fff; font-weight:500; padding:9px 17px; border-radius:6px;}
+  nav.main a.cta:hover{background:var(--teal-deep);}
+  .nav-toggle{
+    display:none; background:rgba(255,255,255,.10); border:1.5px solid rgba(255,255,255,.40);
+    color:#fff; font-family:var(--mono); font-size:13px; padding:8px 13px; border-radius:6px; cursor:pointer;
+  }
+
+  /* ─── shared ───────────────────────────────────────────────── */
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.10em; text-transform:uppercase;
+    color:var(--teal-deep); display:flex; align-items:center; gap:9px; margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:""; width:14px; height:9px; flex:none;
+    border-left:2.4px solid currentColor; border-bottom:2.4px solid currentColor;
+    transform:rotate(-45deg) translateY(-2px);
+  }
+  .eyebrow.on-dark{color:var(--teal);}
+  .band{padding:78px 0;}
+  .band.tight{padding:58px 0;}
+  h2.section{font-size:clamp(26px,3.2vw,34px); line-height:1.15; max-width:21ch;}
+  .section-lede{color:var(--ink-soft); max-width:58ch; margin:12px 0 0; font-size:17.5px;}
+
+  .btn{
+    font-family:var(--mono); font-size:14px; text-decoration:none;
+    padding:13px 22px; border-radius:6px; display:inline-block;
+    border:1.5px solid transparent; cursor:pointer;
+  }
+  .btn-primary{background:var(--teal); color:#fff; border-color:var(--teal);}
+  .btn-primary:hover{background:var(--teal-deep); border-color:var(--teal-deep);}
+  .btn-navy{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .btn-navy:hover{background:var(--navy-deep);}
+  .btn-ghost{border-color:var(--ink); color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--teal-deep); color:var(--teal-deep);}
+  .btn-outline-light{border-color:rgba(255,255,255,.55); color:#fff;}
+  .btn-outline-light:hover{border-color:#fff; background:rgba(255,255,255,.08);}
+
+  /* ─── hero ─────────────────────────────────────────────────── */
+  .hero{
+    background:var(--navy); background-image:var(--motif), var(--navy-bg);
+    background-repeat:repeat, no-repeat; color:#fff; padding:80px 0 88px;
+  }
+  .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:center;}
+  .hero h1{font-size:clamp(34px,4.8vw,55px); line-height:1.05; color:#fff; margin-bottom:20px;}
+  .hero h1 em{font-style:normal; color:var(--teal);}
+  .hero .lede{font-size:19.5px; color:var(--on-dark); max-width:46ch; margin:0 0 30px;}
+  .hero-ctas{display:flex; gap:13px; flex-wrap:wrap;}
+  .hero-note{font-family:var(--mono); font-size:12.5px; color:var(--on-dark-soft); margin-top:22px;}
+
+  .schedule-card{
+    /* The hero sets color:#fff; this is a light surface inside it and must
+       reset the inherited colour or its text renders white-on-white. */
+    color:var(--ink);
+    background:var(--paper); border-radius:12px; padding:24px 24px 20px;
+    box-shadow:0 26px 60px -28px rgba(0,0,0,.6);
+  }
+  .sc-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:1px solid var(--line-soft); padding-bottom:13px; margin-bottom:6px;
+  }
+  .sc-head .clinic{font-family:var(--display); font-weight:600; font-size:15px;}
+  .sc-head .proc{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);}
+  .sc-row{
+    display:grid; grid-template-columns:20px 74px 1fr; gap:12px; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .sc-row:last-child{border-bottom:none;}
+  .sc-box{width:18px; height:18px; border:1.7px solid var(--navy); border-radius:3px; position:relative; opacity:.28;}
+  .sc-box.checked{opacity:1; border-color:var(--teal); background:var(--teal);}
+  .sc-box.checked::after{
+    content:""; position:absolute; left:5px; top:1px; width:5px; height:9px;
+    border-right:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(40deg);
+  }
+  .sc-time{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft);}
+  .sc-med{font-size:15px;}
+  .sc-med .dose{color:var(--ink-soft); font-size:13px;}
+  .sc-foot{
+    font-family:var(--mono); font-size:11px; color:var(--ink-soft);
+    padding-top:13px; margin-top:6px; border-top:1px solid var(--line-soft);
+  }
+
+  /* ─── problem ──────────────────────────────────────────────── */
+  .problem{background:var(--paper); border-bottom:1px solid var(--line);}
+  .problem-grid{display:grid; grid-template-columns:.85fr 1.15fr; gap:56px; align-items:start;}
+  .problem-grid p{color:var(--ink-soft); font-size:18px; margin:0;}
+  .problem-grid p + p{margin-top:16px;}
+
+  /* ─── steps ────────────────────────────────────────────────── */
+  .steps{display:grid; grid-template-columns:repeat(4,1fr); gap:28px; margin-top:42px;}
+  .step{padding-top:22px; border-top:2px solid var(--teal);}
+  .step .num{font-family:var(--mono); font-size:12px; color:var(--teal-deep); letter-spacing:.08em; display:block; margin-bottom:12px;}
+  .step h3{font-size:17.5px; margin-bottom:8px;}
+  .step p{color:var(--ink-soft); font-size:15.5px; margin:0;}
+
+  /* ─── demo ─────────────────────────────────────────────────── */
+  .demo{
+    background:var(--navy); background-image:var(--motif), var(--navy-bg);
+    background-repeat:repeat, no-repeat; color:#fff;
+  }
+  .demo h2.section{color:#fff;}
+  .demo .section-lede{color:var(--on-dark);}
+  .demo-grid{display:grid; grid-template-columns:1fr 300px; gap:60px; align-items:center; margin-top:44px;}
+  .demo-points{list-style:none; margin:0 0 32px; padding:0;}
+  .demo-points li{
+    display:flex; gap:13px; align-items:flex-start; padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,.14); color:var(--on-dark); font-size:16.5px;
+  }
+  .demo-points li:last-child{border-bottom:none;}
+  .demo-points li strong{color:#fff; font-weight:600;}
+  .demo-points li::before{
+    content:""; width:15px; height:9px; flex:none; margin-top:8px;
+    border-left:2.4px solid var(--teal); border-bottom:2.4px solid var(--teal);
+    transform:rotate(-45deg);
+  }
+  .demo-note{
+    font-family:var(--mono); font-size:12px; color:var(--on-dark-soft);
+    margin-top:20px; line-height:1.6;
+  }
+
+  /* An illustration drawn in HTML/CSS, not a screenshot. Correct phone
+     proportions by construction, no image asset to go stale when the app
+     changes, and no claim that this is a captured screen — the interactive
+     demo is what vouches for the real thing. */
+  .phone{
+    width:300px; border:2px solid rgba(255,255,255,.30); border-radius:30px;
+    background:var(--paper); padding:11px; margin:0 auto;
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.85);
+  }
+  .phone-screen{
+    color:var(--ink); background:#F4F6FA; border-radius:22px; overflow:hidden;
+    aspect-ratio:9/17; display:flex; flex-direction:column;
+  }
+  .ps-bar{
+    background:var(--navy); color:#fff; padding:11px 13px; flex:none;
+  }
+  .ps-bar .t{font-family:var(--display); font-weight:600; font-size:11.5px; line-height:1.2;}
+  .ps-bar .s{font-size:9.5px; color:rgba(255,255,255,.62); margin-top:1px;}
+  .ps-body{padding:11px; display:flex; flex-direction:column; gap:9px; overflow:hidden;}
+  .ps-card{background:#fff; border:1px solid var(--line-soft); border-radius:9px; overflow:hidden;}
+  .ps-card .h{
+    background:var(--navy); color:#fff; padding:7px 10px;
+    font-family:var(--display); font-weight:600; font-size:10.5px;
+  }
+  .ps-card .b{padding:8px 10px;}
+  .ps-label{
+    font-family:var(--mono); font-size:7.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;
+  }
+  .ps-proc{
+    border:1px solid var(--line-soft); border-radius:7px; padding:7px 9px;
+    font-size:10px; color:var(--navy); font-weight:500; margin-bottom:6px;
+  }
+  .ps-proc:last-child{margin-bottom:0;}
+  .ps-proc.on{border-color:var(--teal); background:var(--teal-pale);}
+  .ps-dose{
+    display:flex; align-items:center; gap:8px; padding:6px 0;
+    border-bottom:1px solid var(--line-soft); font-size:10px;
+  }
+  .ps-dose:last-child{border-bottom:none;}
+  .ps-tick{
+    width:13px; height:13px; border-radius:3px; flex:none;
+    border:1.5px solid var(--navy); opacity:.26; position:relative;
+  }
+  .ps-tick.on{opacity:1; background:var(--teal); border-color:var(--teal);}
+  .ps-tick.on::after{
+    content:""; position:absolute; left:3.5px; top:.5px; width:4px; height:7px;
+    border-right:1.6px solid #fff; border-bottom:1.6px solid #fff; transform:rotate(40deg);
+  }
+  .ps-time{font-family:var(--mono); font-size:8.5px; color:var(--ink-soft); width:44px; flex:none;}
+  .ps-days{display:flex; gap:5px;}
+  .ps-days span{
+    font-size:8px; padding:4px 8px; border-radius:999px; white-space:nowrap;
+    border:1px solid var(--line-soft); background:#fff; color:var(--ink-soft);
+  }
+  .ps-days span.on{background:var(--navy); border-color:var(--navy); color:#fff; font-weight:600;}
+  .ps-remind{
+    display:flex; align-items:center; gap:7px; font-size:9.5px; color:var(--teal-deep);
+    background:var(--teal-pale); border:1px solid var(--teal); border-radius:8px; padding:7px 10px;
+  }
+  .ps-bell{
+    width:9px; height:9px; flex:none; border-radius:50%;
+    background:var(--teal); box-shadow:0 0 0 3px rgba(23,163,152,.22);
+  }
+  .phone-cap{
+    font-family:var(--mono); font-size:11px; color:var(--on-dark-soft);
+    text-align:center; margin-top:15px;
+  }
+
+  /* ─── features ─────────────────────────────────────────────── */
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line);
+    border-radius:12px; overflow:hidden; margin-top:42px;
+  }
+  .feature{background:var(--paper); padding:28px 26px;}
+  .feature .fmark{width:24px; height:15px; margin-bottom:15px;
+    border-left:2.6px solid var(--teal); border-bottom:2.6px solid var(--teal);
+    transform:rotate(-45deg) translate(2px,-3px);}
+  .feature h3{font-size:16.5px; margin-bottom:8px;}
+  .feature p{font-size:15px; color:var(--ink-soft); margin:0;}
+
+  /* ─── reviews ──────────────────────────────────────────────── */
+  .reviews{background:var(--teal-pale); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .review-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:42px;}
+  .review{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:28px 26px; display:flex; flex-direction:column;
+  }
+  .review .qmark{
+    font-family:var(--display); font-weight:700; font-size:44px; line-height:.7;
+    color:var(--teal); margin-bottom:14px;
+  }
+  .review blockquote{margin:0 0 20px; font-size:16.5px; line-height:1.6; flex:1;}
+  .review figcaption{
+    border-top:1px solid var(--line-soft); padding-top:15px;
+    font-family:var(--mono); font-size:12px; color:var(--ink-soft); line-height:1.6;
+  }
+  .review figcaption b{display:block; color:var(--ink); font-weight:500; font-size:13px;}
+  .review.placeholder{border-style:dashed; background:transparent;}
+  .review.placeholder blockquote{color:var(--ink-soft); font-style:italic;}
+  .reviews-note{
+    margin-top:26px; padding:16px 20px; border:1px dashed var(--teal);
+    border-radius:8px; font-family:var(--mono); font-size:12.5px; color:var(--teal-deep);
+    background:var(--paper);
+  }
+
+  /* ─── delivery ─────────────────────────────────────────────── */
+  .deliver-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:42px;}
+  .deliver{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:26px 24px; display:flex; flex-direction:column;
+  }
+  .deliver .dnum{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--teal-deep); margin-bottom:12px;
+  }
+  .deliver h3{font-size:17px; margin-bottom:8px;}
+  .deliver p{font-size:15px; color:var(--ink-soft); margin:0;}
+  .deliver .dnote{
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);
+    margin-top:14px; padding-top:12px; border-top:1px solid var(--line-soft);
+  }
+  .tracker-aside{
+    display:flex; gap:30px; align-items:center; flex-wrap:wrap;
+    margin-top:26px; padding:24px 26px;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+  }
+  .tracker-aside .ta-img{width:250px; flex:none;}
+  .tracker-aside .ta-img img{border:1px solid var(--line); border-radius:6px; width:100%;}
+  .tracker-aside .ta-text{flex:1; min-width:250px;}
+  .tracker-aside h3{font-size:17px; margin-bottom:8px;}
+  .tracker-aside p{margin:0; color:var(--ink-soft); font-size:15.5px; max-width:52ch;}
+
+  /* ─── printables ───────────────────────────────────────────── */
+  .doc-cards{display:flex; gap:34px; flex-wrap:wrap; margin-top:40px;}
+  .doc-card{width:280px;}
+  .doc-frame{
+    border:1px solid var(--line); border-radius:8px; overflow:hidden;
+    background:var(--paper); box-shadow:0 18px 40px -28px rgba(18,41,74,.5);
+  }
+  .doc-cap{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); margin-top:13px;}
+  .doc-cap b{color:var(--ink); font-weight:500;}
+
+  /* ─── data ─────────────────────────────────────────────────── */
+  .data{background:var(--paper); border-top:1px solid var(--line);}
+  .data-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:40px;}
+  .data-col{border:1px solid var(--line); border-radius:12px; padding:26px 24px; background:var(--cream);}
+  .data-col.negative{background:var(--paper);}
+  .data-col h3{font-size:16.5px; margin-bottom:4px;}
+  .data-col .sub{font-family:var(--mono); font-size:11px; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:16px;}
+  .data-col ul{list-style:none; margin:0; padding:0;}
+  .data-col li{
+    display:flex; gap:11px; align-items:flex-start; font-size:15px;
+    padding:9px 0; border-bottom:1px solid var(--line-soft); line-height:1.45;
+  }
+  .data-col li:last-child{border-bottom:none;}
+  .data-col li .mk{font-family:var(--mono); flex:none; font-weight:500;}
+  .data-col.holds li .mk{color:var(--teal-deep);}
+  .data-col.negative li .mk{color:var(--slate);}
+  .data-foot{
+    margin-top:24px; padding:20px 22px; border:1px dashed var(--line);
+    border-radius:8px; font-size:15.5px; color:var(--ink-soft);
+  }
+  .data-foot b{color:var(--ink);}
+
+  /* ─── pricing ──────────────────────────────────────────────── */
+  .pricing-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:42px;}
+  .price-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:28px 26px; display:flex; flex-direction:column;
+  }
+  .price-card.highlight{
+    border-color:var(--teal); border-width:2px; position:relative;
+    box-shadow:0 22px 50px -32px rgba(23,163,152,.75);
+  }
+  .price-card.highlight::before{
+    content:"Save about 2 months"; position:absolute; top:-12px; left:24px;
+    background:var(--teal); color:#fff; font-family:var(--mono); font-size:11px;
+    padding:5px 11px; border-radius:999px;
+  }
+  .pc-label{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px;}
+  .pc-amount{font-family:var(--display); font-weight:700; font-size:38px; line-height:1;}
+  .pc-amount span{font-family:var(--mono); font-weight:400; font-size:14px; color:var(--ink-soft);}
+  .pc-desc{color:var(--ink-soft); font-size:15px; margin:10px 0 18px;}
+  .pc-features{list-style:none; margin:0 0 22px; padding:0; flex:1;}
+  .pc-features li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14.5px;
+    padding:8px 0; border-bottom:1px solid var(--line-soft); line-height:1.45;
+  }
+  .pc-features li:last-child{border-bottom:none;}
+  .pc-features li::before{content:"✓"; flex:none; color:var(--teal); font-family:var(--mono); font-weight:500;}
+  .pc-cta{margin-top:auto; text-align:center; font-family:var(--mono); font-size:13.5px;
+    text-decoration:none; padding:12px 0; border-radius:6px; border:1.5px solid transparent;}
+  .pc-cta.solid{background:var(--teal); color:#fff;}
+  .pc-cta.solid:hover{background:var(--teal-deep);}
+  .pc-cta.outline{border-color:var(--ink); color:var(--ink);}
+  .pc-cta.outline:hover{border-color:var(--teal-deep); color:var(--teal-deep);}
+  .pricing-setup{
+    display:flex; align-items:center; justify-content:space-between; gap:22px; flex-wrap:wrap;
+    margin-top:24px; padding:20px 24px; border:1px dashed var(--line);
+    border-radius:8px; background:var(--paper);
+  }
+  .pricing-setup .ps-text{font-size:15.5px; color:var(--ink-soft); max-width:62ch;}
+
+  /* ─── cta ──────────────────────────────────────────────────── */
+  .cta-band{
+    background:var(--navy); background-image:var(--motif), var(--navy-bg);
+    background-repeat:repeat, no-repeat; color:#fff; padding:82px 0; text-align:center;
+  }
+  .cta-band h2{font-size:clamp(26px,3.4vw,36px); color:#fff; margin-bottom:14px;}
+  .cta-band p{color:var(--on-dark); max-width:54ch; margin:0 auto 30px;}
+  .cta-ctas{display:flex; gap:13px; justify-content:center; flex-wrap:wrap;}
+
+  /* ─── footer ───────────────────────────────────────────────── */
+  footer{background:var(--paper); border-top:1px solid var(--line); padding:44px 0 34px;}
+  .footer-top{display:flex; justify-content:space-between; gap:40px; flex-wrap:wrap; margin-bottom:32px;}
+  .footer-brand{max-width:34ch;}
+  .footer-brand img{width:170px; height:auto; margin-bottom:14px;}
+  .footer-brand p{font-size:14.5px; color:var(--ink-soft); margin:0;}
+  .footer-links{display:flex; gap:40px; flex-wrap:wrap;}
+  .footer-links div{display:flex; flex-direction:column; gap:9px;}
+  .fl-head{font-family:var(--mono); font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:2px;}
+  .footer-links a{font-size:14.5px; text-decoration:none;}
+  .footer-links a:hover{color:var(--teal-deep); text-decoration:underline;}
+  .footer-disclaim{font-size:13.5px; color:var(--ink-soft); max-width:74ch; line-height:1.55;
+    padding-top:22px; border-top:1px solid var(--line-soft);}
+  .footer-legal{
+    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin-top:20px;
+  }
+
+  /* ─── modal ────────────────────────────────────────────────── */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(14,35,64,.62); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--paper); border-radius:14px; max-width:460px; width:100%;
+    padding:34px 32px; position:relative; box-shadow:0 34px 80px -34px rgba(14,35,64,.8);
+  }
+  .modal-close{
+    position:absolute; top:14px; right:14px; background:none; border:none;
+    font-family:var(--mono); font-size:22px; color:var(--ink-soft); cursor:pointer; padding:6px;
+  }
+  .modal-close:hover{color:var(--ink);}
+  .modal-box h3{font-size:23px; margin-bottom:8px;}
+  .modal-sub{color:var(--ink-soft); font-size:15px; margin:0 0 22px;}
+  .modal-field{margin-bottom:15px;}
+  .modal-field label{display:block; font-family:var(--mono); font-size:11.5px;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+  .modal-field input{
+    width:100%; font-family:var(--body); font-size:16px; padding:11px 13px;
+    border:1.5px solid var(--line); border-radius:7px; background:var(--cream); color:var(--ink);
+  }
+  .modal-field input:focus{border-color:var(--teal);}
+  .modal-submit{
+    width:100%; font-family:var(--mono); font-size:14px; background:var(--teal); color:#fff;
+    border:none; border-radius:7px; padding:14px 0; cursor:pointer; margin-top:8px;
+  }
+  .modal-submit:hover{background:var(--teal-deep);}
+  .modal-submit:disabled{opacity:.6; cursor:default;}
+  .modal-error{color:#B4441F; font-size:14px; margin-top:12px; display:none;}
+  .modal-note{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
+  .modal-success{display:none; text-align:center; padding:14px 0;}
+  .modal-success p{color:var(--ink-soft); font-size:15px;}
+
+  /* ─── responsive ───────────────────────────────────────────── */
+  @media (max-width:940px){
+    .hero-grid,.problem-grid,.data-grid,.demo-grid{grid-template-columns:1fr;}
+    .hero-grid{gap:44px;}
+    .steps{grid-template-columns:1fr 1fr; gap:26px;}
+    .feature-grid,.review-grid{grid-template-columns:1fr 1fr;}
+    .pricing-grid{grid-template-columns:1fr;}
+    nav.main{
+      display:none; position:absolute; top:100%; left:0; right:0;
+      flex-direction:column; align-items:stretch; gap:0;
+      background:var(--navy-deep); border-bottom:1px solid rgba(255,255,255,.16);
+      padding:8px 28px 18px;
+    }
+    nav.main.open{display:flex;}
+    nav.main a{padding:12px 0; border-bottom:1px solid rgba(255,255,255,.10);}
+    nav.main a.cta{text-align:center; margin-top:12px; border-bottom:none;}
+    .nav-toggle{display:block;}
+  }
+  @media (max-width:640px){
+    body{font-size:16.5px;}
+    .band{padding:58px 0;}
+    .steps,.feature-grid,.review-grid{grid-template-columns:1fr;}
+    .doc-card{width:100%; max-width:320px;}
+    .brand .plate img{width:108px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a href="#top" class="brand" aria-label="Postopify home">
+      <span class="plate"><img src="postopify-wordmark.png" alt="Postopify"></span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mainNav">Menu</button>
+    <nav class="main" id="mainNav">
+      <a href="#how">How it works</a>
+      <a href="#demo">See it</a>
+      <a href="#data">Your data</a>
+      <a href="#pricing">Pricing</a>
+      <a href="/faq">FAQs</a>
+      <a href="#" class="cta" onclick="openInquiryModal(); return false;">Bring it to my practice</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow on-dark">Post-op instructions, delivered</div>
+        <h1>Aftercare that <em>survives the ride home.</em></h1>
+        <p class="lede">Postopify turns your practice's post-operative instructions into a personal code for every patient — scanned in the lobby or emailed from the front desk. They open it once and have easy access to their post-operative instructions and medication schedule on their own phone for quick, convenient, private and easy access — no paper instructions to keep track of, and nothing to lose.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="demo.html">Try the patient view →</a>
+          <a class="btn btn-outline-light" href="#" onclick="openInquiryModal(); return false;">Bring it to your practice</a>
+        </div>
+        <p class="hero-note">No patient login · Works on any phone · Nothing to lose</p>
+      </div>
+
+      <div class="schedule-card" aria-label="Example medication schedule">
+        <div class="sc-head">
+          <span class="clinic">Your Practice</span>
+          <span class="proc">Post-op day 1</span>
+        </div>
+        <div class="sc-row"><div class="sc-box checked"></div><span class="sc-time">8:00 AM</span><span class="sc-med">Amoxicillin <span class="dose">500 mg</span></span></div>
+        <div class="sc-row"><div class="sc-box checked"></div><span class="sc-time">12:00 PM</span><span class="sc-med">Ibuprofen <span class="dose">600 mg</span></span></div>
+        <div class="sc-row"><div class="sc-box"></div><span class="sc-time">4:00 PM</span><span class="sc-med">Amoxicillin <span class="dose">500 mg</span></span></div>
+        <div class="sc-row"><div class="sc-box"></div><span class="sc-time">8:00 PM</span><span class="sc-med">Ibuprofen <span class="dose">600 mg</span></span></div>
+        <div class="sc-row"><div class="sc-box"></div><span class="sc-time">10:00 PM</span><span class="sc-med">Amoxicillin <span class="dose">500 mg</span></span></div>
+        <div class="sc-foot">Example schedule — not a real patient</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PROBLEM ═══ -->
+  <section class="band tight problem">
+    <div class="wrap problem-grid">
+      <div>
+        <div class="eyebrow">Why paper fails</div>
+        <h2 class="section">A discharge sheet does its job for exactly one ride home.</h2>
+      </div>
+      <div>
+        <p>After that, it's folded into a bag, left on a nightstand, thrown away or lost, right at the moment when a patient needs the information the most — such as when to remember which medication comes at 2 PM.</p>
+        <p>Postopify replaces the sheet with a link every phone already knows how to open, so the instructions are still there on day three, not just day one. The practice writes them once; the patient can't misplace them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ HOW IT WORKS ═══ -->
+  <section class="band" id="how">
+    <div class="wrap">
+      <div class="eyebrow">How it works</div>
+      <h2 class="section">Four steps, and no software to set up.</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="num">01</span>
+          <h3>Add your procedures</h3>
+          <p>Drop a Google Doc into your practice's folder for each procedure. The title becomes the name patients see.</p>
+        </div>
+        <div class="step">
+          <span class="num">02</span>
+          <h3>Hand out the code</h3>
+          <p>Each practice sets each patient up with their very own code that is either emailed to them or they scan while waiting in the lobby, with their medication and post-operative instructions individually set. This includes your clinic's name and logo.</p>
+        </div>
+        <div class="step">
+          <span class="num">03</span>
+          <h3>The patient scans it</h3>
+          <p>The code opens a page built for their procedure: your instructions, plus a medication schedule they can check off.</p>
+        </div>
+        <div class="step">
+          <span class="num">04</span>
+          <h3>Update anytime</h3>
+          <p>Edit your office's post-operative instructions in Google Docs and the change is live immediately. Nothing to redeploy, nothing to reprint.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DEMO ═══ -->
+  <section class="band demo" id="demo">
+    <div class="wrap">
+      <div class="eyebrow on-dark">See it in action</div>
+      <h2 class="section">What a patient sees.</h2>
+      <p class="section-lede">Don't take our word for it. The demo is the real patient view, running on sample data — open it on your own phone and use it exactly as a patient would.</p>
+
+      <div class="demo-grid">
+        <div>
+          <ul class="demo-points">
+            <li><strong>Pick a procedure</strong> and read the instructions your practice wrote.</li>
+            <li><strong>Set a dose reminder</strong> and watch the schedule build itself.</li>
+            <li><strong>Check off a dose</strong> — the time is logged automatically.</li>
+            <li><strong>Switch days</strong>, from day of surgery through the days after.</li>
+          </ul>
+          <a class="btn btn-primary" href="demo.html">Open the interactive demo →</a>
+          <p class="demo-note">Sample data only. Nothing you type into it is saved, sent, or kept.<br>No sign-in, and it works the same on a laptop or a phone.</p>
+        </div>
+
+        <div>
+          <!-- Illustration, drawn in HTML/CSS — not a screenshot. Nothing to
+               re-capture when the app changes, and it makes no claim to be a
+               captured screen; demo.html is what vouches for the real thing. -->
+          <div class="phone" aria-hidden="true">
+            <div class="phone-screen">
+              <div class="ps-bar">
+                <div class="t">Post-Op Medication Schedule</div>
+                <div class="s">Your Practice</div>
+              </div>
+              <div class="ps-body">
+                <div class="ps-card">
+                  <div class="h">Post-Op Instructions</div>
+                  <div class="b">
+                    <div class="ps-label">Your procedure</div>
+                    <div class="ps-proc on">General Tooth Extraction</div>
+                    <div class="ps-proc">Sinus Precautions</div>
+                  </div>
+                </div>
+                <div class="ps-days">
+                  <span class="on">Day of Surgery</span><span>Day 1</span><span>Day 2</span>
+                </div>
+                <div class="ps-card">
+                  <div class="h">Today's doses</div>
+                  <div class="b">
+                    <div class="ps-dose"><span class="ps-tick on"></span><span class="ps-time">8:00 AM</span><span>Amoxicillin</span></div>
+                    <div class="ps-dose"><span class="ps-tick on"></span><span class="ps-time">12:00 PM</span><span>Ibuprofen</span></div>
+                    <div class="ps-dose"><span class="ps-tick"></span><span class="ps-time">4:00 PM</span><span>Amoxicillin</span></div>
+                    <div class="ps-dose"><span class="ps-tick"></span><span class="ps-time">8:00 PM</span><span>Ibuprofen</span></div>
+                    <div class="ps-dose"><span class="ps-tick"></span><span class="ps-time">10:00 PM</span><span>Amoxicillin</span></div>
+                  </div>
+                </div>
+                <div class="ps-remind">
+                  <span class="ps-bell"></span>Dose reminders on
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-cap">Illustration — open the demo for the real thing</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES ═══ -->
+  <section class="band">
+    <div class="wrap">
+      <div class="eyebrow">What's included</div>
+      <h2 class="section">Built for how a surgical practice actually runs.</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="fmark"></div>
+          <h3>Branded per practice</h3>
+          <p>Logo, clinic name, and colors are pulled automatically from your practice's own link.</p>
+        </div>
+        <div class="feature">
+          <div class="fmark"></div>
+          <h3>Zero-code content</h3>
+          <p>Add a Google Doc to your folder and it appears as a selectable procedure. No developer required.</p>
+        </div>
+        <div class="feature">
+          <div class="fmark"></div>
+          <h3>Dose reminders</h3>
+          <p>Patients can opt into a reminder for each dose. A convenience feature, not a safety system.</p>
+        </div>
+        <div class="feature">
+          <div class="fmark"></div>
+          <h3>Bilingual patient view</h3>
+          <p>English and Spanish, switchable by the patient on their own phone.</p>
+        </div>
+        <div class="feature">
+          <div class="fmark"></div>
+          <h3>Printable handout</h3>
+          <p>Print any patient's own one-page handout from the front desk — their code, how to use it, and your clinic's details.</p>
+        </div>
+        <div class="feature">
+          <div class="fmark"></div>
+          <h3>Built by a surgeon</h3>
+          <p>Created by an oral &amp; maxillofacial surgeon — and flexible enough for any practice that prescribes post-operative medications.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ REVIEWS ═══════════════════════════════════════════════
+       PLACEHOLDER CONTENT. Every quote below is bracketed and
+       visibly marked as unfilled. Replace each with a real quote
+       you have written permission to publish, then delete the
+       .placeholder class and the .reviews-note block. Do not
+       launch this section with invented quotes or names.
+       ═════════════════════════════════════════════════════════ -->
+  <section class="band reviews" id="reviews">
+    <div class="wrap">
+      <div class="eyebrow">From the practices using it</div>
+      <h2 class="section">What surgeons and front-office staff say.</h2>
+      <p class="section-lede">The people who set patients up every day are the ones worth hearing from.</p>
+
+      <div class="review-grid">
+        <figure class="review placeholder">
+          <div class="qmark">“</div>
+          <blockquote>[Quote from a surgeon — ideally about post-op call volume, or patients arriving at follow-up already on schedule.]</blockquote>
+          <figcaption><b>[Name, credentials]</b>[Role] · [Practice]</figcaption>
+        </figure>
+        <figure class="review placeholder">
+          <div class="qmark">“</div>
+          <blockquote>[Quote from front-office staff — ideally about how long setup takes at discharge, or what patients ask for now that they didn't before.]</blockquote>
+          <figcaption><b>[Name]</b>[Role] · [Practice]</figcaption>
+        </figure>
+        <figure class="review placeholder">
+          <div class="qmark">“</div>
+          <blockquote>[Quote from a parent or patient — ideally about the reminders, or about still having the instructions on day three.]</blockquote>
+          <figcaption><b>[Name or "Parent of a patient"]</b>[Practice, if they consent]</figcaption>
+        </figure>
+      </div>
+
+      <div class="reviews-note">
+        BUILD NOTE — remove before launch: replace the three placeholders with real, permissioned quotes, then delete this box and the <code>placeholder</code> class on each card. If you don't have three yet, delete the unused cards rather than leaving them empty; two real quotes beat three invented ones.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PRINTABLES ═══ -->
+  <section class="band tight">
+    <div class="wrap">
+      <div class="eyebrow">At the front desk</div>
+      <h2 class="section">Three ways a patient gets set up.</h2>
+      <p class="section-lede">Your front desk opens Kickstart, picks the procedure and medications, and generates that patient's own code. How it reaches them is whatever suits the visit.</p>
+
+      <div class="deliver-grid">
+        <div class="deliver">
+          <span class="dnum">Option 01</span>
+          <h3>Scanned in the lobby</h3>
+          <p>The patient scans the code off the screen before they leave. Their instructions and schedule are already on their phone by the time they reach the car.</p>
+          <div class="dnote">Fastest — nothing to carry</div>
+        </div>
+        <div class="deliver">
+          <span class="dnum">Option 02</span>
+          <h3>Printed and handed over</h3>
+          <p>Print that patient's own one-page handout and give it to them. It carries their code, how to use the schedule, and your clinic's name and phone number.</p>
+          <div class="dnote">Good for a caregiver who isn't in the room</div>
+        </div>
+        <div class="deliver">
+          <span class="dnum">Option 03</span>
+          <h3>Emailed to them</h3>
+          <p>Staff send the link from your practice's own email, with the message pre-filled. The address is typed in your mail program — it is never entered into Postopify.</p>
+          <div class="dnote">Check your office's policy before emailing procedure details</div>
+        </div>
+      </div>
+
+      <div class="tracker-aside">
+        <div class="ta-img">
+          <img src="kickstart-handout-sample.png" alt="Sample one-page patient handout printed from Kickstart, showing the patient's QR code and instructions for using their medication schedule">
+        </div>
+        <div class="ta-text">
+          <h3>What the printed handout looks like</h3>
+          <p>One page, generated for that patient. Their code, six steps for using the schedule, how to save it to a home screen so dose alarms work, and your practice's name and number at the bottom — plus a plain statement that the app runs on their own phone and their medication logs stay there.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ DATA ═══ -->
+  <section class="band data" id="data">
+    <div class="wrap">
+      <div class="eyebrow">Patient data</div>
+      <h2 class="section">Patients can fill in their details. We just never see them.</h2>
+      <p class="section-lede">A patient can enter their own name, date of birth and pharmacy — it makes the page theirs, and it's there if they need to call someone. That information stays on their phone. It is never sent to us, and we could not produce it if asked.</p>
+
+      <div class="data-grid">
+        <div class="data-col holds">
+          <h3>Stays on the patient's phone</h3>
+          <div class="sub">Entered by them · never transmitted</div>
+          <ul>
+            <li><span class="mk">▪</span><span>Their name, if they choose to enter one</span></li>
+            <li><span class="mk">▪</span><span>Date of birth, if they choose to enter one</span></li>
+            <li><span class="mk">▪</span><span>Their pharmacy's name and phone number</span></li>
+            <li><span class="mk">▪</span><span>Separate profiles, when one person is tracking for two patients</span></li>
+            <li><span class="mk">▪</span><span>Which doses they've checked off</span></li>
+          </ul>
+        </div>
+        <div class="data-col negative">
+          <h3>Reaches our servers</h3>
+          <div class="sub">The complete list — nothing else is sent</div>
+          <ul>
+            <li><span class="mk">→</span><span>A short practice code, such as <span class="mono">demo</span></span></li>
+            <li><span class="mk">→</span><span>A randomly generated device identifier, not derived from anything personal</span></li>
+            <li><span class="mk">→</span><span>The device's time zone</span></li>
+            <li><span class="mk">→</span><span>The date of surgery</span></li>
+            <li><span class="mk">→</span><span>Which medications are being tracked, and at what times</span></li>
+            <li><span class="mk">→</span><span>A Telegram chat identifier — only if the patient connects reminders</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="data-foot">
+        <b>No name, date of birth, phone number, email address, medical record number, insurance detail or chart data ever leaves the patient's device</b> — and nothing identifying appears in a link or a QR code. A post-op appointment added to their calendar is a generic entry the patient titles themselves.
+      </div>
+
+      <div class="data-foot">
+        <b>Your clinical content stays yours.</b> Instruction documents live in your practice's own Google Drive, not on a server you don't control. Editing a document changes what patients see; deleting it removes the procedure. Postopify reads those documents — it does not own them.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PRICING ═══ -->
+  <section class="band" id="pricing">
+    <div class="wrap">
+      <div class="eyebrow">Pricing</div>
+      <h2 class="section">Flat pricing, per practice.</h2>
+      <p class="section-lede">No per-patient fees and no metering. One rate for your practice, however many patients scan the code.</p>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="pc-label">Monthly</div>
+          <div class="pc-amount">$35 <span>/ month</span></div>
+          <p class="pc-desc">Billed monthly. Cancel anytime.</p>
+          <ul class="pc-features">
+            <li>Unlimited patients and procedures</li>
+            <li>Bilingual patient view (English &amp; Spanish)</li>
+            <li>Opt-in dose reminders</li>
+            <li>Branded subdomain for your practice</li>
+            <li>Printable per-patient handout from Kickstart</li>
+          </ul>
+          <a class="pc-cta outline" href="#" onclick="openInquiryModal(); return false;">Get started</a>
+        </div>
+
+        <div class="price-card highlight">
+          <div class="pc-label">Annual</div>
+          <div class="pc-amount">$350 <span>/ year</span></div>
+          <p class="pc-desc">Billed once a year — roughly $29 a month.</p>
+          <ul class="pc-features">
+            <li>Everything in Monthly</li>
+            <li>Two months free versus paying monthly</li>
+            <li>Priority support during setup</li>
+            <li>Locked-in annual rate</li>
+          </ul>
+          <a class="pc-cta solid" href="#" onclick="openInquiryModal(); return false;">Get started</a>
+        </div>
+
+        <div class="price-card">
+          <div class="pc-label">Setup</div>
+          <div class="pc-amount">$50 <span>one-time</span></div>
+          <p class="pc-desc">Charged once, at signup, alongside your first invoice.</p>
+          <ul class="pc-features">
+            <li>Branded subdomain provisioning</li>
+            <li>Drive template folder setup</li>
+            <li>Logo and color branding</li>
+            <li>Front-desk Kickstart access, branded to your practice</li>
+          </ul>
+          <a class="pc-cta outline" href="#" onclick="openInquiryModal(); return false;">Get started</a>
+        </div>
+      </div>
+
+      <div class="pricing-setup">
+        <div class="ps-text">Send us your practice's details and we'll review, provision your branded subdomain, and follow up with a secure payment link to activate. Most practices are live within a day or two.</div>
+        <a class="btn btn-navy" href="#" onclick="openInquiryModal(); return false;">Start onboarding</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Have a practice you'd like on Postopify?</h2>
+      <p>Setup takes an afternoon: a Drive folder for your instructions, a subdomain, and your clinic's branding. No paper instructions for your patients to keep track of.</p>
+      <div class="cta-ctas">
+        <a class="btn btn-primary" href="#" onclick="openInquiryModal(); return false;">Request access</a>
+        <a class="btn btn-outline-light" href="demo.html">See the patient view first</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="postopify-wordmark.png" alt="Postopify">
+        <p>Post-operative instructions and medication tracking for surgical practices. Recovery with peace of mind.</p>
+      </div>
+      <div class="footer-links">
+        <div>
+          <span class="fl-head">Product</span>
+          <a href="#how">How it works</a>
+          <a href="demo.html">Interactive demo</a>
+          <a href="#data">Your data</a>
+          <a href="#pricing">Pricing</a>
+          <a href="/faq">FAQs</a>
+        </div>
+        <div>
+          <span class="fl-head">Legal</span>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+        <div>
+          <span class="fl-head">Contact</span>
+          <a href="#" onclick="openInquiryModal(); return false;">Bring it to my practice</a>
+          <a href="mailto:postopify@gmail.com">postopify@gmail.com</a>
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-disclaim">
+      Postopify presents instructions and medication schedules provided by your own practice. It does not
+      give medical advice, and dose reminders are a convenience feature — not an alarm, an alert, or a
+      safety system. Patients should always follow the directions given by their surgeon and contact the
+      practice directly with any concern.
+    </p>
+
+    <div class="footer-legal">
+      <span>© 2026 SMBB Innovations LLC</span>
+      <span>Built by an oral &amp; maxillofacial surgeon</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ INQUIRY MODAL ═══ -->
+<div class="modal-overlay" id="inquiryOverlay" onclick="if(event.target===this) closeInquiryModal();">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="inquiryTitle">
+    <button class="modal-close" onclick="closeInquiryModal()" aria-label="Close">&times;</button>
+
+    <div id="inquiryFormWrap">
+      <h3 id="inquiryTitle">Tell us about your practice</h3>
+      <p class="modal-sub">We'll review your details and follow up with a link to finish setup — usually within a day.</p>
+
+      <form id="inquiryForm" onsubmit="submitInquiry(event)">
+        <div class="modal-field">
+          <label for="inqContactName">Your name</label>
+          <input type="text" id="inqContactName" autocomplete="name" required>
+        </div>
+        <div class="modal-field">
+          <label for="inqPractice">Practice name</label>
+          <input type="text" id="inqPractice" autocomplete="organization" required>
+        </div>
+        <div class="modal-field">
+          <label for="inqEmail">Email</label>
+          <input type="email" id="inqEmail" autocomplete="email" required>
+        </div>
+        <div class="modal-field">
+          <label for="inqPhone">Phone (optional)</label>
+          <input type="tel" id="inqPhone" autocomplete="tel">
+        </div>
+        <button type="submit" class="modal-submit" id="inquirySubmitBtn">Request access</button>
+        <div class="modal-error" id="inquiryError">Something went wrong — please try again, or email postopify@gmail.com directly.</div>
+        <p class="modal-note">This form is for practice staff. Please don't include any patient information.</p>
+      </form>
+    </div>
+
+    <div class="modal-success" id="inquirySuccess">
+      <h3>Thanks — we've got it.</h3>
+      <p>We'll follow up at the email you provided with next steps. Most practices hear back within a day or two.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── mobile nav ── */
+  (function(){
+    var btn = document.getElementById('navToggle');
+    var nav = document.getElementById('mainNav');
+    btn.addEventListener('click', function(){
+      var open = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    nav.addEventListener('click', function(e){
+      if(e.target.tagName === 'A'){
+        nav.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+  })();
+
+  /* ── inquiry modal ── */
+  var INQUIRY_ENDPOINT = 'https://postopify.com/inquire';
+  var lastFocused = null;
+
+  function openInquiryModal(){
+    lastFocused = document.activeElement;
+    document.getElementById('inquiryOverlay').classList.add('open');
+    document.getElementById('inquiryFormWrap').style.display = 'block';
+    document.getElementById('inquirySuccess').style.display = 'none';
+    document.getElementById('inquiryError').style.display = 'none';
+    setTimeout(function(){ document.getElementById('inqContactName').focus(); }, 30);
+  }
+
+  function closeInquiryModal(){
+    document.getElementById('inquiryOverlay').classList.remove('open');
+    if(lastFocused && lastFocused.focus) lastFocused.focus();
+  }
+
+  function submitInquiry(evt){
+    evt.preventDefault();
+    var btn = document.getElementById('inquirySubmitBtn');
+    var errorBox = document.getElementById('inquiryError');
+    errorBox.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    var payload = {
+      practiceName: document.getElementById('inqPractice').value.trim(),
+      contactName:  document.getElementById('inqContactName').value.trim(),
+      contactEmail: document.getElementById('inqEmail').value.trim(),
+      phone:        document.getElementById('inqPhone').value.trim()
+    };
+
+    fetch(INQUIRY_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        btn.disabled = false;
+        btn.textContent = 'Request access';
+        if(data.status === 'ok'){
+          document.getElementById('inquiryFormWrap').style.display = 'none';
+          document.getElementById('inquirySuccess').style.display = 'block';
+          document.getElementById('inquiryForm').reset();
+        } else {
+          errorBox.textContent = data.message || 'Something went wrong — please try again, or email postopify@gmail.com directly.';
+          errorBox.style.display = 'block';
+        }
+      })
+      .catch(function(){
+        btn.disabled = false;
+        btn.textContent = 'Request access';
+        errorBox.style.display = 'block';
+      });
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') closeInquiryModal();
+  });
+</script>
+
+</body>
+</html>
